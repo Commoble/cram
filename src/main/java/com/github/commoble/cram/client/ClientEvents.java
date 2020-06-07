@@ -1,6 +1,6 @@
 package com.github.commoble.cram.client;
 
-import com.github.commoble.cram.BlockRegistrar;
+import com.github.commoble.cram.CramItemUseContext;
 import com.github.commoble.cram.CrammableBlocks;
 import com.github.commoble.cram.TileEntityRegistrar;
 import com.github.commoble.cram.WorldHelper;
@@ -71,36 +71,36 @@ public class ClientEvents
 					if (CrammableBlocks.REGISTRY.containsKey(heldBlock))
 					{
 						Block hitBlock = hitState.getBlock();
+						
+						BlockPos targetPos = null;
+						BlockState targetState = null;
 						// if we can cram the block we're holding, and the block we're looking at can have more blocks crammed in it
 						if (CrammableBlocks.REGISTRY.containsKey(hitBlock))
 						{
-							BlockItemUseContext context = new BlockItemUseContext(new ItemUseContext(player, hand, rayTrace));
-							
-							BlockState newState = WorldHelper.getBlockStateToCram(context);
-							if (newState != null && WorldHelper.isRoomForState(world, hitPos, newState))
-							{
-
-								BlockPreviewRenderer.renderBlockPreview(hitPos, newState, world, event.getInfo().getProjectedView(), event.getMatrix(), event.getBuffers());
-
-							}
+							targetPos = hitPos;
+							targetState = hitState;
 						}
 						else
 						{
-							BlockPos offsetPos = hitPos.offset(rayTrace.getFace());
-							Block offsetBlock = world.getBlockState(offsetPos).getBlock();
+							BlockPos adjacentPos = hitPos.offset(rayTrace.getFace());
+							BlockState adjacentState = world.getBlockState(adjacentPos);
+							Block adjacentBlock = adjacentState.getBlock();
+							
 
-							// if we can cram the block we're holding, and the block next to the block we're looking at can cram
-							if (CrammableBlocks.REGISTRY.containsKey(offsetBlock) || offsetBlock == BlockRegistrar.CRAMMED_BLOCK.get())
+							if (CrammableBlocks.REGISTRY.containsKey(adjacentBlock))
 							{
-								BlockItemUseContext context = new BlockItemUseContext(new ItemUseContext(player, hand, rayTrace));
-								
-								BlockState newState = WorldHelper.getBlockStateToCram(context);
-								if (newState != null && WorldHelper.isRoomForState(world, offsetPos, newState))
-								{
+								targetPos = adjacentPos;
+								targetState = adjacentState;
+							}
+						}
+						if (targetPos != null && targetState != null)
+						{
+							BlockItemUseContext context = new CramItemUseContext(new ItemUseContext(player, hand, rayTrace), targetPos);
+							BlockState newState = WorldHelper.getBlockStateToCram(context);
+							if (newState != null && WorldHelper.isRoomForState(world, targetPos, newState))
+							{
 
-									BlockPreviewRenderer.renderBlockPreview(offsetPos, newState, world, event.getInfo().getProjectedView(), event.getMatrix(), event.getBuffers());
-
-								}
+								BlockPreviewRenderer.renderBlockPreview(targetPos, newState, world, event.getInfo().getProjectedView(), event.getMatrix(), event.getBuffers());
 							}
 						}
 					}
@@ -108,5 +108,4 @@ public class ClientEvents
 			}
 		}
 	}
-
 }

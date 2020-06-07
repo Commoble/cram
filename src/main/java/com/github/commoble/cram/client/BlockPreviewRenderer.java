@@ -75,11 +75,13 @@ public class BlockPreviewRenderer extends BlockModelRenderer
 	public void renderQuadSmooth(ILightReader world, BlockState state, BlockPos pos, IVertexBuilder buffer, MatrixStack.Entry matrixEntry, BakedQuad quadIn,
 		float tintA, float tintB, float tintC, float tintD, int brightness0, int brightness1, int brightness2, int brightness3, int combinedOverlayIn)
 	{
-		double timeFactor = (Math.sin(Util.milliTime() * 0.005D) / 4D) + 0.5D;
-		float previewTint = (float)timeFactor;
-		float r= previewTint;
-		float g= previewTint;
-		float b= previewTint;
+		long milliTime = Util.milliTime();
+		double valueTime = milliTime * 0.005D;
+		double colorTime = Util.milliTime() * 0.005D;
+		float value = 1;
+		float r= value * (float) ((Math.sin(colorTime) / 4D) + 0.5D);
+		float g= value * (float) ((Math.sin(colorTime + 2*Math.PI / 3) / 4D) + 0.5D);
+		float b= value * (float) ((Math.sin(colorTime + 4*Math.PI / 3) / 4D) + 0.5D);
 		if (quadIn.hasTintIndex())
 		{
 			int i = this.blockColors.getColor(state, world, pos, quadIn.getTintIndex());

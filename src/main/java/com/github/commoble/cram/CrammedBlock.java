@@ -1,11 +1,13 @@
 package com.github.commoble.cram;
 
+import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MaterialColor;
+import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -120,7 +122,81 @@ public class CrammedBlock extends Block
 	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand)
 	{
-		CrammedTileEntity.getBlockStates(worldIn, pos).forEach(state -> state.getBlock().animateTick(state, worldIn, pos, rand));
+		List<BlockState> states = CrammedTileEntity.getBlockStates(worldIn, pos);
+		int size = states.size();
+		if (size > 0)
+		{
+			BlockState subState = states.get(worldIn.rand.nextInt(size));
+			subState.getBlock().animateTick(subState, worldIn, pos, rand);
+		}
+	}
+
+	/**
+	 * Spawn particles for when the block is destroyed. Due to the nature of how
+	 * this is invoked, the x/y/z locations are not always guaranteed to host your
+	 * block. So be sure to do proper sanity checks before assuming that the
+	 * location is this block.
+	 *
+	 * @param world
+	 *            The current world
+	 * @param pos
+	 *            Position to spawn the particle
+	 * @param manager
+	 *            A reference to the current particle manager.
+	 * @return True to prevent vanilla break particles from spawning.
+	 */
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public boolean addDestroyEffects(BlockState cramState, World world, BlockPos pos, ParticleManager manager)
+	{
+		// forge says to double-check the position so let's do that
+		if (world.getBlockState(pos).getBlock() == this)
+		{
+			CrammedTileEntity.getBlockStates(world, pos).forEach(subState -> manager.addBlockDestroyEffects(pos, subState));
+		}
+		// return true in any case because we don't want to spawn particles even if we don't do the above
+		return true;
+	}
+
+	/**
+	 * Spawn a digging particle effect in the world, this is a wrapper around
+	 * EffectRenderer.addBlockHitEffects to allow the block more control over the
+	 * particles. Useful when you have entirely different texture sheets for
+	 * different sides/locations in the world.
+	 *
+	 * @param state
+	 *            The current state
+	 * @param world
+	 *            The current world
+	 * @param target
+	 *            The target the player is looking at {x/y/z/side/sub}
+	 * @param manager
+	 *            A reference to the current particle manager.
+	 * @return True to prevent vanilla digging particles form spawning.
+	 */
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public boolean addHitEffects(BlockState state, World world, RayTraceResult target, ParticleManager manager)
+	{
+		if (target instanceof BlockRayTraceResult)
+		{
+			Vec3d hit = target.getHitVec();
+			BlockPos pos = new BlockPos(hit);
+			List<BlockState> states = CrammedTileEntity.getBlockStates(world, pos);
+			for (BlockState subState : states)
+			{
+				if (subState.getShape(world, pos).getBoundingBox().contains(hit))
+				{
+					manager.addBlockHitEffects(pos, (BlockRayTraceResult)target);
+				}
+			}
+			
+			return true; // tell the game we did our own hit effects and don't need the regular ones
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	// TODO implement the rest of these

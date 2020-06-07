@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.SoundType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BlockItemUseContext;
@@ -12,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -74,6 +76,10 @@ public abstract class MixinCallbacks
 							{
 								CrammedTileEntity.addBlockStates(world, targetPos, targetState, newState);
 							}
+							SoundType soundtype = newState.getSoundType(world, targetPos, context.getPlayer());
+							world.playSound(player, targetPos, newState.getSoundType(world, targetPos, player).getPlaceSound(), SoundCategory.BLOCKS,
+								(soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+							stack.shrink(1);
 							cramSuccessful = true;
 						}
 					}

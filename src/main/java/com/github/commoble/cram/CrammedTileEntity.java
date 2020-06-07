@@ -95,7 +95,10 @@ public class CrammedTileEntity extends TileEntity
 			CrammedTileEntity te = (CrammedTileEntity)maybeTE;
 			for (BlockState state : states)
 			{
-				te.states.add(state);
+				if (state.getBlock() != BlockRegistrar.CRAMMED_BLOCK.get())
+				{
+					te.states.add(state);
+				}
 			}
 			te.updateProperties();
 			te.markDirty();

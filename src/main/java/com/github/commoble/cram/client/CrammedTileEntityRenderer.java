@@ -31,7 +31,8 @@ public class CrammedTileEntityRenderer extends TileEntityRenderer<CrammedTileEnt
 	public void render(CrammedTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLightIn, int combinedOverlayIn)
 	{
 		BlockRendererDispatcher dispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
-		BlockModelRenderer renderer = dispatcher.getBlockModelRenderer();
+		BlockModelRenderer baseRenderer = dispatcher.getBlockModelRenderer();
+		CrammedBlockStateRenderer renderer = CrammedBlockStateRenderer.getInstance(baseRenderer);
 		BlockModelShapes shapes = dispatcher.getBlockModelShapes();
 		World world = te.getWorld();
 		BlockPos pos = te.getPos();
@@ -40,6 +41,7 @@ public class CrammedTileEntityRenderer extends TileEntityRenderer<CrammedTileEnt
 		{
 	        IBakedModel model = shapes.getModel(state);
 	        IModelData modelData = model.getModelData(world, pos, state, ModelDataManager.getModelData(world, pos));
+//	        dispatcher.renderModel(state, pos, world, matrixStack, buffer.getBuffer(RenderTypeLookup.getRenderType(state)), true, world.rand, modelData);
 			renderer.renderModel(
 				world,
 				model,
