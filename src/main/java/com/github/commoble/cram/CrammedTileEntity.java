@@ -1,6 +1,7 @@
 package com.github.commoble.cram;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -11,19 +12,18 @@ import com.github.commoble.cram.util.NBTListHelper;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.WallTorchBlock;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
+import net.minecraftforge.common.util.Constants;
 
 public class CrammedTileEntity extends TileEntity
 {
@@ -44,9 +44,6 @@ public class CrammedTileEntity extends TileEntity
 	public CrammedTileEntity()
 	{
 		super(TileEntityRegistrar.CRAMMED_BLOCK.get());
-		this.states.add(Blocks.STONE_PRESSURE_PLATE.getDefaultState());
-		this.states.add(Blocks.WALL_TORCH.getDefaultState());
-		this.states.add(Blocks.WALL_TORCH.getDefaultState().with(WallTorchBlock.HORIZONTAL_FACING, Direction.SOUTH));
 	}
 	
 	public static <T> T getSubstateProperty(IBlockReader world, BlockPos pos, Function<CrammedTileEntity, T> getter)
@@ -86,13 +83,15 @@ public class CrammedTileEntity extends TileEntity
 	/**
 	 * Add sub-blockstates to the TE-at-the-given-position's list,
 	 * this should only be called on the server.
-	 * Also recalculates the cached properties and saves and syncs the TE's data
+	 * Also recalculates the cached properties and saves and syncs the TE's data.
+	 * 
+	 * This function assumes that the crammability of the states is already verified
 	 * */
-	public static void addBlockStates(IBlockReader world, BlockPos pos, BlockState... states)
+	public static void addBlockStates(IWorld world, BlockPos pos, BlockState... states)
 	{
 		TileEntity maybeTE = world.getTileEntity(pos);
 		if (maybeTE instanceof CrammedTileEntity)
-		{
+		{	// if a crammed block exists here, cram the states into it
 			CrammedTileEntity te = (CrammedTileEntity)maybeTE;
 			for (BlockState state : states)
 			{
@@ -100,6 +99,29 @@ public class CrammedTileEntity extends TileEntity
 			}
 			te.updateProperties();
 			te.markDirty();
+			te.world.notifyBlockUpdate(pos, te.getBlockState(), te.getBlockState(), Constants.BlockFlags.DEFAULT);
+		}
+		else
+		{	// otherwise, make a crammed block first, then try to cram the new states into it
+			BlockState existingState = world.getBlockState(pos);
+			int existingLight = existingState.getLightValue(world, pos);
+			int newLight = Arrays.stream(states).map(state -> state.getLightValue(world, pos))
+				.reduce(existingLight, Math::max);
+			world.setBlockState(pos, BlockRegistrar.CRAMMED_BLOCK.get().getDefaultState().with(CrammedBlock.LIGHT, newLight),0);
+			
+
+			maybeTE = world.getTileEntity(pos);
+			if (maybeTE instanceof CrammedTileEntity)
+			{
+				CrammedTileEntity te = (CrammedTileEntity)maybeTE;
+				for (BlockState state : states)
+				{
+					te.states.add(state);
+				}
+				te.updateProperties();
+				te.markDirty();
+				te.world.notifyBlockUpdate(pos, te.getBlockState(), te.getBlockState(), Constants.BlockFlags.DEFAULT);
+			}
 		}
 	}
 	

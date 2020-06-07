@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.github.commoble.cram.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "cram.refmap.json",
+  "mixins": [
+  	"BlockItemMixin"
+  ],
+  "client":[
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
