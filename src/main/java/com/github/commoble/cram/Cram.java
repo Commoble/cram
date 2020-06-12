@@ -1,5 +1,8 @@
 package com.github.commoble.cram;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.github.commoble.cram.client.ClientEvents;
 
 import net.minecraft.block.Blocks;
@@ -17,6 +20,8 @@ import net.minecraftforge.registries.DeferredRegister;
 public class Cram
 {
 	public static final String MODID = "cram";
+	
+	public static final Logger LOGGER = LogManager.getLogger();
 	
 	public Cram()
 	{
@@ -57,6 +62,9 @@ public class Cram
 		CrammableBlocks.register(Blocks.STONE_PRESSURE_PLATE);
 		CrammableBlocks.register(Blocks.TORCH);
 		CrammableBlocks.register(Blocks.WALL_TORCH);
+		
+		// init API plugins
+		Plugins.loadPlugins();
 	}
 	
 	private static void addForgeListeners(IEventBus forgeBus)
