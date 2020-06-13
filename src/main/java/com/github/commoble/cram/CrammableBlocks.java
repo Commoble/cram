@@ -3,25 +3,21 @@ package com.github.commoble.cram;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.commoble.cram.api.CramEntry;
+
 import net.minecraft.block.Block;
-import net.minecraft.util.math.RayTraceContext.IVoxelProvider;
 
 public class CrammableBlocks
 {
-	public static final Map<Block, IVoxelProvider> REGISTRY = new HashMap<>();
+	private static final Map<Block, CramEntryImpl> REGISTRY = new HashMap<>();
 	
-	public static void register(Block block, IVoxelProvider provider)
+	public static CramEntry getCramEntry(Block block)
 	{
-		REGISTRY.put(block, provider);
+		return getCramEntryImpl(block);
 	}
-
-	/**
-	 * Register a block to the crammable blocks registry, using its default getShape method for the voxel provider
-	 * @param block
-	 */
-	@SuppressWarnings("deprecation")
-	public static void register(Block block)
+	
+	public static CramEntryImpl getCramEntryImpl(Block block)
 	{
-		REGISTRY.put(block, block::getShape);
+		return REGISTRY.getOrDefault(block, new CramEntryImpl(block));
 	}
 }

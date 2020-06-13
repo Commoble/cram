@@ -1,5 +1,6 @@
 package com.github.commoble.cram.api;
 
+import com.github.commoble.cram.api.functions.EntityCollisionBehavior;
 import com.github.commoble.cram.api.functions.LightGetter;
 import com.github.commoble.cram.api.functions.NaiveVoxelProvider;
 
@@ -61,4 +62,12 @@ public interface CramEntry
 	 * @return this
 	 */
 	public CramEntry setRaytraceShapeGetter(final NaiveVoxelProvider shapeGetter);
+	
+	/**
+	 * Sets the function that determines what happens when an entity collides with a block.
+	 * Does nothing by default. This MUST be set manually if behavior is desired.
+	 * @param behavior
+	 * @return this
+	 */
+	public CramEntry setEntityCollisionBehavior(final EntityCollisionBehavior behavior);
 }

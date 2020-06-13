@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
+import com.github.commoble.cram.api.CramAccess;
 import com.github.commoble.cram.util.NBTListHelper;
 import com.google.common.collect.ImmutableList;
 
@@ -19,13 +20,14 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraftforge.common.util.Constants;
 
-public class CrammedTileEntity extends TileEntity
+public class CrammedTileEntity extends TileEntity implements CramAccess
 {
 	/** CrammedTileEntity holding the properties of a te with an empty substate list **/ 
 	protected static final CrammedTileEntity EMPTY_INSTANCE = new CrammedTileEntity();
@@ -149,12 +151,12 @@ public class CrammedTileEntity extends TileEntity
 	
 	private void updateProperties()
 	{
-		
+		ISelectionContext context = ISelectionContext.dummy(); // TODO make selection context possible?
 		VoxelShape emptyVoxel = VoxelShapes.empty();
-		this.cachedShape = this.getCombinedProperty(state -> state.getShape(this.world, this.pos), emptyVoxel, VoxelShapes::or);
-		this.cachedCollisionShape = this.getCombinedProperty(state -> state.getCollisionShape(this.world, this.pos), emptyVoxel, VoxelShapes::or);
-		this.cachedRaytraceShape = this.getCombinedProperty(state -> state.getRaytraceShape(this.world, this.pos), emptyVoxel, VoxelShapes::or);
-		this.cachedRenderShape = this.getCombinedProperty(state -> state.getRenderShape(this.world, this.pos), emptyVoxel, VoxelShapes::or);
+		this.cachedShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).shapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
+		this.cachedCollisionShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).collisionShapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
+		this.cachedRaytraceShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).raytraceShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
+		this.cachedRenderShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).renderShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
 
 		// don't update light on read
 		if (this.world != null)
@@ -162,7 +164,7 @@ public class CrammedTileEntity extends TileEntity
 			BlockState oldState = this.getBlockState();
 			if (oldState.has(CrammedBlock.LIGHT))
 			{
-				int newLight = this.getCombinedProperty(state -> state.getLightValue(this.world, this.pos), 0, Math::max);
+				int newLight = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).lightGetter.getLight(state, this.world, this.pos), 0, Math::max);
 				int oldLight = oldState.get(CrammedBlock.LIGHT);
 				if (newLight != oldLight)
 				{
@@ -219,5 +221,35 @@ public class CrammedTileEntity extends TileEntity
 	public AxisAlignedBB getRenderBoundingBox()
 	{
 		return super.getRenderBoundingBox();
+	}
+
+	@Override
+	public boolean containsState(BlockState state)
+	{
+		return this.states.contains(state);
+	}
+
+	@Override
+	public boolean isRoomForState(BlockState state, BlockState... ignoreStates)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean addState(BlockState state)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean replaceState(BlockState oldState, BlockState newState)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean removeState(BlockState oldState, boolean playSound, boolean dropItems)
+	{
+		return false;
 	}
 }

@@ -34,7 +34,8 @@ public class AirSimulator implements IWorldReader
 	@Override
 	public TileEntity getTileEntity(BlockPos pos)
 	{
-		return null;
+		BlockState state = this.baseWorld.getBlockState(pos);
+		return state.getBlock() == BlockRegistrar.CRAMMED_BLOCK.get() ? null : this.baseWorld.getTileEntity(pos);
 	}
 
 	@Override

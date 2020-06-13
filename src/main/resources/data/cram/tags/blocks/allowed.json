@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+  	"cram:crammed_block",
+    "minecraft:torch",
+    "minecraft:wall_torch",
+    "minecraft:stone_pressure_plate"
+  ]
+}

@@ -198,6 +198,24 @@ public class CrammedBlock extends Block
 			return false;
 		}
 	}
+
+	@Override
+	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
+	{
+		super.onEntityCollision(state, worldIn, pos, entityIn);
+	}
+
+	@Override
+	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
+	{
+		super.randomTick(state, worldIn, pos, random);
+	}
+
+	@Override
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	{
+		super.tick(state, worldIn, pos, rand);
+	}
 	
 	// TODO implement the rest of these
 
@@ -320,18 +338,6 @@ public class CrammedBlock extends Block
 	{
 		return super.propagatesSkylightDown(state, reader, pos);
 	}
-
-	@Override
-	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
-	{
-		super.randomTick(state, worldIn, pos, random);
-	}
-
-	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
-	{
-		super.tick(state, worldIn, pos, rand);
-	}
 	
 	@Override
 	public void onPlayerDestroy(IWorld worldIn, BlockPos pos, BlockState state)
@@ -403,12 +409,6 @@ public class CrammedBlock extends Block
 	public boolean canProvidePower(BlockState state)
 	{
 		return super.canProvidePower(state);
-	}
-
-	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
-	{
-		super.onEntityCollision(state, worldIn, pos, entityIn);
 	}
 
 	@Override

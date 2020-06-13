@@ -19,5 +19,5 @@ public interface NaiveVoxelProvider
 	 * @param pos The position we're looking at
 	 * @return The VoxelShape the blockstate would have if it were at the given position
 	 */
-	public VoxelShape getSecondaryShape(BlockState state, IBlockReader world, BlockPos pos);
+	public VoxelShape get(BlockState state, IBlockReader world, BlockPos pos);
 }

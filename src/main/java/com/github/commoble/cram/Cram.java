@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.github.commoble.cram.client.ClientEvents;
 
-import net.minecraft.block.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -56,13 +55,7 @@ public class Cram
 	}
 	
 	private static void onCommonSetup(FMLCommonSetupEvent event)
-	{
-		CrammableBlocks.register(BlockRegistrar.CRAMMED_BLOCK.get());
-		
-		CrammableBlocks.register(Blocks.STONE_PRESSURE_PLATE);
-		CrammableBlocks.register(Blocks.TORCH);
-		CrammableBlocks.register(Blocks.WALL_TORCH);
-		
+	{		
 		// init API plugins
 		Plugins.loadPlugins();
 	}

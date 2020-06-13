@@ -1,7 +1,7 @@
 package com.github.commoble.cram.client;
 
 import com.github.commoble.cram.CramItemUseContext;
-import com.github.commoble.cram.CrammableBlocks;
+import com.github.commoble.cram.CramTags;
 import com.github.commoble.cram.TileEntityRegistrar;
 import com.github.commoble.cram.WorldHelper;
 
@@ -65,43 +65,39 @@ public class ClientEvents
 				hand = hand == null ? Hand.MAIN_HAND : hand;
 				ItemStack stack = player.getHeldItem(hand); 
 				Item item = stack.getItem();
-				if (item instanceof BlockItem)
+				if (item instanceof BlockItem && CramTags.isItemCrammingPermittedByTags(item))
 				{
-					Block heldBlock = ((BlockItem) item).getBlock();
-					if (CrammableBlocks.REGISTRY.containsKey(heldBlock))
+					Block hitBlock = hitState.getBlock();
+					
+					BlockPos targetPos = null;
+					BlockState targetState = null;
+					// if we can cram the block we're holding, and the block we're looking at can have more blocks crammed in it
+					if (CramTags.isBlockCrammingPermittedByTags(hitBlock))
 					{
-						Block hitBlock = hitState.getBlock();
+						targetPos = hitPos;
+						targetState = hitState;
+					}
+					else
+					{
+						BlockPos adjacentPos = hitPos.offset(rayTrace.getFace());
+						BlockState adjacentState = world.getBlockState(adjacentPos);
+						Block adjacentBlock = adjacentState.getBlock();
 						
-						BlockPos targetPos = null;
-						BlockState targetState = null;
-						// if we can cram the block we're holding, and the block we're looking at can have more blocks crammed in it
-						if (CrammableBlocks.REGISTRY.containsKey(hitBlock))
-						{
-							targetPos = hitPos;
-							targetState = hitState;
-						}
-						else
-						{
-							BlockPos adjacentPos = hitPos.offset(rayTrace.getFace());
-							BlockState adjacentState = world.getBlockState(adjacentPos);
-							Block adjacentBlock = adjacentState.getBlock();
-							
 
-							if (CrammableBlocks.REGISTRY.containsKey(adjacentBlock))
-							{
-								targetPos = adjacentPos;
-								targetState = adjacentState;
-							}
-						}
-						if (targetPos != null && targetState != null)
+						if (CramTags.isBlockCrammingPermittedByTags(adjacentBlock))
 						{
-							BlockItemUseContext context = new CramItemUseContext(new ItemUseContext(player, hand, rayTrace), targetPos);
-							BlockState newState = WorldHelper.getBlockStateToCram(context);
-							if (newState != null && WorldHelper.isRoomForState(world, targetPos, newState))
-							{
+							targetPos = adjacentPos;
+							targetState = adjacentState;
+						}
+					}
+					if (targetPos != null && targetState != null)
+					{
+						BlockItemUseContext context = new CramItemUseContext(new ItemUseContext(player, hand, rayTrace), targetPos);
+						BlockState newState = WorldHelper.getBlockStateToCram(context);
+						if (newState != null && WorldHelper.isRoomForState(world, targetPos, newState))
+						{
 
-								BlockPreviewRenderer.renderBlockPreview(targetPos, newState, world, event.getInfo().getProjectedView(), event.getMatrix(), event.getBuffers());
-							}
+							BlockPreviewRenderer.renderBlockPreview(targetPos, newState, world, event.getInfo().getProjectedView(), event.getMatrix(), event.getBuffers());
 						}
 					}
 				}

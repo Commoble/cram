@@ -7,17 +7,25 @@ import org.objectweb.asm.Type;
 
 import com.github.commoble.cram.api.AutoCramPlugin;
 import com.github.commoble.cram.api.CramPlugin;
+import com.github.commoble.cram.api.functions.CramRegistrator;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData.AnnotationData;
 
 public class Plugins
 {	
+	/**
+	 * Instantiate one instance of all classes that are
+	 * A) annotated with AutoCramPlugin, and
+	 * B) implementing CramPlugin
+	 * and then allow the instances to register cram behaviors
+	 */
 	public static void loadPlugins()
 	{
 		Cram.LOGGER.info("Loading Cram plugins!");
 		
 		Type cramPluginType = Type.getType(AutoCramPlugin.class);
+		CramRegistrator registrator = CrammableBlocks::getCramEntry;
 		
 		// get the names of all classes annotated with the plugin annotation
 		ModList.get().getAllScanData().stream()
@@ -27,7 +35,8 @@ public class Plugins
 			
 			// try to create instances of these classes
 			.flatMap(Plugins::createPluginInstance)
-			.forEach(plugin -> plugin.register());
+			// and allow them to register cram behaviors if they were instantiated successfully
+			.forEach(plugin -> plugin.register(registrator));
 	}
 	
 	/**

@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BlockItemUseContext;
@@ -32,17 +31,13 @@ public class WorldHelper
 		Item item = stack.getItem();
 		World world = context.getWorld();
 		BlockPos pos = context.getPos();
-		if (item instanceof BlockItem)
+		if (item instanceof BlockItem && CramTags.isItemCrammingPermittedByTags(item))
 		{
 			BlockItem blockItem = (BlockItem)item;
-			Block block = blockItem.getBlock();
-			if (CrammableBlocks.REGISTRY.containsKey(block))
+			BlockState state = CramBlockItemHelper.getStateForPlacement(blockItem, context);
+			if (state != null && state.isValidPosition(new AirSimulator(world), pos))
 			{
-				BlockState state = CramBlockItemHelper.getStateForPlacement(blockItem, context);
-				if (state != null && state.isValidPosition(new AirSimulator(world), pos))
-				{
-					return state;
-				}
+				return state;
 			}
 		}
 		
