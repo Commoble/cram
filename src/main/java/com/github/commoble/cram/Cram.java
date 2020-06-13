@@ -3,11 +3,13 @@ package com.github.commoble.cram;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.github.commoble.cram.api.CramAccessor;
 import com.github.commoble.cram.client.ClientEvents;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -55,7 +57,10 @@ public class Cram
 	}
 	
 	private static void onCommonSetup(FMLCommonSetupEvent event)
-	{		
+	{
+		// register capability
+		CapabilityManager.INSTANCE.register(CramAccessor.class, new EmptyCramAccessor.Storage(), EmptyCramAccessor::new);
+		
 		// init API plugins
 		Plugins.loadPlugins();
 	}

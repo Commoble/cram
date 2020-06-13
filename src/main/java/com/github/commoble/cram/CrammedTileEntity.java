@@ -1,16 +1,18 @@
 package com.github.commoble.cram;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
-import com.github.commoble.cram.api.CramAccess;
+import com.github.commoble.cram.api.CramAccessor;
 import com.github.commoble.cram.util.NBTListHelper;
-import com.google.common.collect.ImmutableList;
+import com.github.commoble.cram.util.WorldHelper;
+import com.google.common.collect.Sets;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,6 +20,7 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -25,9 +28,11 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.common.util.LazyOptional;
 
-public class CrammedTileEntity extends TileEntity implements CramAccess
+public class CrammedTileEntity extends TileEntity
 {
 	/** CrammedTileEntity holding the properties of a te with an empty substate list **/ 
 	protected static final CrammedTileEntity EMPTY_INSTANCE = new CrammedTileEntity();
@@ -36,7 +41,10 @@ public class CrammedTileEntity extends TileEntity implements CramAccess
 		state -> NBTUtil.writeBlockState(state),
 		nbt -> NBTUtil.readBlockState(nbt));
 	
-	public List<BlockState> states = new ArrayList<>();
+	public final CramBlockAccessor accessor;
+	public final LazyOptional<CramAccessor> accessorHolder;
+
+	public Set<BlockState> states = new HashSet<>();
 	
 	public VoxelShape cachedShape = VoxelShapes.empty();
 	public VoxelShape cachedCollisionShape = VoxelShapes.empty();
@@ -46,6 +54,26 @@ public class CrammedTileEntity extends TileEntity implements CramAccess
 	public CrammedTileEntity()
 	{
 		super(TileEntityRegistrar.CRAMMED_BLOCK.get());
+		this.accessor = new CramBlockAccessor(this);
+		this.accessorHolder = LazyOptional.of(() -> this.accessor);
+	}
+	
+	@Override
+	public void remove()
+	{
+		// make sure we invalidate the cached cram accessor when the TE is removed
+		this.accessorHolder.invalidate();
+		super.remove();
+	}
+
+	@Override
+	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side)
+	{
+		if (cap == CramAccessor.CRAM_ACCESSOR_CAPABILITY)
+		{
+			return this.accessorHolder.cast();
+		}
+		return super.getCapability(cap, side);
 	}
 	
 	public static <T> T getSubstateProperty(IBlockReader world, BlockPos pos, Function<CrammedTileEntity, T> getter)
@@ -69,17 +97,11 @@ public class CrammedTileEntity extends TileEntity implements CramAccess
 	 * @return
 	 */
 	@Nonnull
-	public static List<BlockState> getBlockStates(IBlockReader world, BlockPos pos)
+	public static Collection<BlockState> getBlockStates(IBlockReader world, BlockPos pos)
 	{
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof CrammedTileEntity)
-		{
-			return ((CrammedTileEntity)te).states;
-		}
-		else
-		{
-			return ImmutableList.of();
-		}
+		return WorldHelper.getTileCapability(world, pos, CramAccessor.CRAM_ACCESSOR_CAPABILITY)
+			.map(CramAccessor::getBlockStates)
+			.orElse(EmptyCramAccessor.NO_STATES);
 	}
 
 	/**
@@ -178,7 +200,7 @@ public class CrammedTileEntity extends TileEntity implements CramAccess
 	public void read(CompoundNBT compound)
 	{
 		super.read(compound);
-		this.states = SUBSTATE_SERIALIZER.read(compound);
+		this.states = Sets.newHashSet(SUBSTATE_SERIALIZER.read(compound));
 		this.updateProperties();
 	}
 
@@ -221,35 +243,5 @@ public class CrammedTileEntity extends TileEntity implements CramAccess
 	public AxisAlignedBB getRenderBoundingBox()
 	{
 		return super.getRenderBoundingBox();
-	}
-
-	@Override
-	public boolean containsState(BlockState state)
-	{
-		return this.states.contains(state);
-	}
-
-	@Override
-	public boolean isRoomForState(BlockState state, BlockState... ignoreStates)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean addState(BlockState state)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean replaceState(BlockState oldState, BlockState newState)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean removeState(BlockState oldState, boolean playSound, boolean dropItems)
-	{
-		return false;
 	}
 }

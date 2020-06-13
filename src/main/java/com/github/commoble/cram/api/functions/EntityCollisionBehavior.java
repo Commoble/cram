@@ -2,7 +2,7 @@ package com.github.commoble.cram.api.functions;
 
 import javax.annotation.Nullable;
 
-import com.github.commoble.cram.api.CramAccess;
+import com.github.commoble.cram.api.CramAccessor;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
@@ -28,5 +28,5 @@ public interface EntityCollisionBehavior
 	 * item if possible). Return the original state if it should not be replaced.
 	 */
 	@Nullable
-	public BlockState onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, CramAccess access);
+	public BlockState onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, CramAccessor access);
 }

@@ -1,8 +1,11 @@
-package com.github.commoble.cram;
+package com.github.commoble.cram.util;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
+
+import com.github.commoble.cram.AirSimulator;
+import com.github.commoble.cram.CramTags;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
@@ -10,14 +13,29 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.CramBlockItemHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 
 public class WorldHelper
 {
+	public static <T> LazyOptional<T> getTileCapability(IBlockReader world, BlockPos pos, Capability<T> cap)
+	{
+		TileEntity te = world.getTileEntity(pos);
+		if (te != null)
+		{
+			return te.getCapability(cap);
+		}
+		else
+		{
+			return LazyOptional.empty();
+		}
+	}
 	/**
 	 * Gets the blockstate that we could place into a block if that block was air, even if it isn't air
 	 * Returns null if we can't place a block here

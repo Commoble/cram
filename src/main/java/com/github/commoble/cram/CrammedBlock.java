@@ -1,7 +1,9 @@
 package com.github.commoble.cram;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Random;
+
+import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -122,11 +124,15 @@ public class CrammedBlock extends Block
 	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand)
 	{
-		List<BlockState> states = CrammedTileEntity.getBlockStates(worldIn, pos);
+		Collection<BlockState> states = CrammedTileEntity.getBlockStates(worldIn, pos);
 		int size = states.size();
 		if (size > 0)
 		{
-			BlockState subState = states.get(worldIn.rand.nextInt(size));
+			// this isn't a great way to get a random thing from a collection
+			// but sets aren't great at getting-random-things-from-them in general
+			// (and we need the state collection to be a set more than we need it to be a list)
+			
+			BlockState subState = ImmutableList.copyOf(states).get(rand.nextInt(size));
 			subState.getBlock().animateTick(subState, worldIn, pos, rand);
 		}
 	}
@@ -182,7 +188,7 @@ public class CrammedBlock extends Block
 		{
 			Vec3d hit = target.getHitVec();
 			BlockPos pos = new BlockPos(hit);
-			List<BlockState> states = CrammedTileEntity.getBlockStates(world, pos);
+			Collection<BlockState> states = CrammedTileEntity.getBlockStates(world, pos);
 			for (BlockState subState : states)
 			{
 				if (subState.getShape(world, pos).getBoundingBox().contains(hit))

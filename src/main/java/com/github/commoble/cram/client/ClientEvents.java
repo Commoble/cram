@@ -3,7 +3,7 @@ package com.github.commoble.cram.client;
 import com.github.commoble.cram.CramItemUseContext;
 import com.github.commoble.cram.CramTags;
 import com.github.commoble.cram.TileEntityRegistrar;
-import com.github.commoble.cram.WorldHelper;
+import com.github.commoble.cram.util.WorldHelper;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

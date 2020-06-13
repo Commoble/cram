@@ -116,7 +116,7 @@ public class NBTListHelper<T>
 	 * @param compound A CompoundNBT to write the list into
 	 * @return A CompoundNBT that, when used as the argument to this.read(nbt), will cause that function to reconstruct and return a copy of the original list
 	 */
-	public CompoundNBT write(final List<T> list, final CompoundNBT compound)
+	public CompoundNBT write(final Iterable<T> list, final CompoundNBT compound)
 	{
 		final ListNBT nbtList = new ListNBT();
 		
