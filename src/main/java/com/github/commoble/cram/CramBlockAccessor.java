@@ -47,7 +47,7 @@ public class CramBlockAccessor implements CramAccessor
 		{
 			if (!simulate)
 			{
-				this.te.states.add(state);
+				this.te.addBlockStatesAndUpdate(state);
 			}
 			return true;
 		}
@@ -66,7 +66,7 @@ public class CramBlockAccessor implements CramAccessor
 			{
 				if (!simulate)
 				{
-					this.te.states.add(newState);
+					this.te.addBlockStatesAndUpdate(newState);
 				}
 				return true;
 			}

@@ -3,21 +3,14 @@ package com.github.commoble.cram.api;
 import java.util.Collection;
 
 import net.minecraft.block.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 
 /**
  * This interface permits limited access to a crammed block.
+ * you can get a reference to the capability provider via
+
  */
 public interface CramAccessor
 {
-	/**
-	 * Capability provider for the CramAccessor capability.
-	 * The default instance and storage obtained from this field are for a permanently
-	 * and immutably empty blockstate set, so they generally shouldn't be used
-	 */
-	@CapabilityInject(CramAccessor.class)
-	public static Capability<CramAccessor> CRAM_ACCESSOR_CAPABILITY = null;
 	
 	/**
 	 * @return The collection of blockstates that are crammed

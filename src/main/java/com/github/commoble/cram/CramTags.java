@@ -17,6 +17,9 @@ public class CramTags
 	public static final BlockTags.Wrapper ALLOWED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:allowed"));
 	/** Blocks that cannot have items crammed into them. Overrides allowed blocks. **/
 	public static final BlockTags.Wrapper DENIED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:denied"));
+	
+	/** Blocks that are made for holding crammed blocks in. Cannot be crammed into other blocks themselves.**/
+	public static final BlockTags.Wrapper CRAMMED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:crammed_blocks"));
 
 	/**
 	 * Whether an item can be crammed into an existing block, forming a Crammed Block if it wasn't already.

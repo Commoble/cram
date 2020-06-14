@@ -71,7 +71,10 @@ public abstract class MixinCallbacks
 						// blocks should only be set on the server, but the result of the method should be the same
 						if (!world.isRemote)
 						{
-							CrammedTileEntity.addBlockStates(world, targetPos, targetState, newState);
+							BlockState[] justNewState = {newState};
+							BlockState[] bothStates = {newState, targetState};
+							BlockState[] statesToCram = CramTags.CRAMMED_BLOCKS.contains(targetState.getBlock()) ? justNewState : bothStates;
+							CrammedTileEntity.addBlockStates(world, targetPos, statesToCram);
 						}
 						SoundType soundtype = newState.getSoundType(world, targetPos, context.getPlayer());
 						world.playSound(player, targetPos, newState.getSoundType(world, targetPos, player).getPlaceSound(), SoundCategory.BLOCKS,

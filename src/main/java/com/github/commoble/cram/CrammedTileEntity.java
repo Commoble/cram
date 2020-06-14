@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
+import com.github.commoble.cram.api.CramAccessorCapability;
 import com.github.commoble.cram.api.CramAccessor;
 import com.github.commoble.cram.util.NBTListHelper;
 import com.github.commoble.cram.util.WorldHelper;
@@ -69,7 +70,7 @@ public class CrammedTileEntity extends TileEntity
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side)
 	{
-		if (cap == CramAccessor.CRAM_ACCESSOR_CAPABILITY)
+		if (cap == CramAccessorCapability.INSTANCE)
 		{
 			return this.accessorHolder.cast();
 		}
@@ -91,7 +92,7 @@ public class CrammedTileEntity extends TileEntity
 	
 	/**
 	 * Returns the sub-blockstates held by a crammed TE at the given position.
-	 * Returns an empty list if no crammed TE exists there.
+	 * Returns an empty collection if no crammed TE exists there.
 	 * @param world
 	 * @param pos
 	 * @return
@@ -99,7 +100,7 @@ public class CrammedTileEntity extends TileEntity
 	@Nonnull
 	public static Collection<BlockState> getBlockStates(IBlockReader world, BlockPos pos)
 	{
-		return WorldHelper.getTileCapability(world, pos, CramAccessor.CRAM_ACCESSOR_CAPABILITY)
+		return WorldHelper.getTileCapability(world, pos, CramAccessorCapability.INSTANCE)
 			.map(CramAccessor::getBlockStates)
 			.orElse(EmptyCramAccessor.NO_STATES);
 	}
@@ -116,17 +117,7 @@ public class CrammedTileEntity extends TileEntity
 		TileEntity maybeTE = world.getTileEntity(pos);
 		if (maybeTE instanceof CrammedTileEntity)
 		{	// if a crammed block exists here, cram the states into it
-			CrammedTileEntity te = (CrammedTileEntity)maybeTE;
-			for (BlockState state : states)
-			{
-				if (state.getBlock() != BlockRegistrar.CRAMMED_BLOCK.get())
-				{
-					te.states.add(state);
-				}
-			}
-			te.updateProperties();
-			te.markDirty();
-			te.world.notifyBlockUpdate(pos, te.getBlockState(), te.getBlockState(), Constants.BlockFlags.DEFAULT);
+			((CrammedTileEntity)maybeTE).addBlockStatesAndUpdate(states);
 		}
 		else
 		{	// otherwise, make a crammed block first, then try to cram the new states into it
@@ -140,15 +131,45 @@ public class CrammedTileEntity extends TileEntity
 			maybeTE = world.getTileEntity(pos);
 			if (maybeTE instanceof CrammedTileEntity)
 			{
-				CrammedTileEntity te = (CrammedTileEntity)maybeTE;
-				for (BlockState state : states)
-				{
-					te.states.add(state);
-				}
-				te.updateProperties();
-				te.markDirty();
-				te.world.notifyBlockUpdate(pos, te.getBlockState(), te.getBlockState(), Constants.BlockFlags.DEFAULT);
+				((CrammedTileEntity)maybeTE).addBlockStatesAndUpdate(states);
 			}
+		}
+	}
+	
+	public void addBlockStatesAndUpdate(BlockState... states)
+	{
+		for (BlockState state : states)
+		{
+			this.states.add(state);
+		}
+		this.updateProperties();
+		this.markDirty();
+		this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), Constants.BlockFlags.DEFAULT);
+	}
+	
+	public void removeBlockStatesAndUpdate(BlockState... states)
+	{
+		for (BlockState state : states)
+		{
+			this.states.remove(state);
+		}
+		
+		// if we have 0 or 1 blockstates remaining, return this block to a normal, non-crammed block
+		int remainingStates = this.states.size();
+		if (remainingStates <= 0)
+		{	// if no states remain, set block to air
+			this.world.removeBlock(this.pos, false);
+		}
+		else if (remainingStates == 1)
+		{	// if 1 state remains, set block to that state
+			// (this seems to be the least bad way to get an object out of a set that only contains it)
+			this.states.forEach(state -> this.world.setBlockState(this.pos, state));
+		}
+		else
+		{
+			this.updateProperties();
+			this.markDirty();
+			this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), Constants.BlockFlags.DEFAULT);
 		}
 	}
 	
