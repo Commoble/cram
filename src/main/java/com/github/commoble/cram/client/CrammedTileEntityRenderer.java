@@ -5,13 +5,11 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.client.renderer.BlockModelShapes;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.util.math.BlockPos;
@@ -31,8 +29,6 @@ public class CrammedTileEntityRenderer extends TileEntityRenderer<CrammedTileEnt
 	public void render(CrammedTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLightIn, int combinedOverlayIn)
 	{
 		BlockRendererDispatcher dispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
-		BlockModelRenderer baseRenderer = dispatcher.getBlockModelRenderer();
-		CrammedBlockStateRenderer renderer = CrammedBlockStateRenderer.getInstance(baseRenderer);
 		BlockModelShapes shapes = dispatcher.getBlockModelShapes();
 		World world = te.getWorld();
 		BlockPos pos = te.getPos();
@@ -41,19 +37,7 @@ public class CrammedTileEntityRenderer extends TileEntityRenderer<CrammedTileEnt
 		{
 	        IBakedModel model = shapes.getModel(state);
 	        IModelData modelData = model.getModelData(world, pos, state, ModelDataManager.getModelData(world, pos));
-//	        dispatcher.renderModel(state, pos, world, matrixStack, buffer.getBuffer(RenderTypeLookup.getRenderType(state)), true, world.rand, modelData);
-			renderer.renderModel(
-				world,
-				model,
-				state,
-				pos,
-				matrixStack,
-				buffer.getBuffer(RenderTypeLookup.getRenderType(state)),
-				false,
-				world.rand,
-				state.getPositionRandom(pos),
-				OverlayTexture.NO_OVERLAY,
-				modelData);
+	        dispatcher.renderModel(state, pos, world, matrixStack, buffer.getBuffer(RenderTypeLookup.getChunkRenderType(state)), true, world.rand, modelData);
 		}
 	}
 
