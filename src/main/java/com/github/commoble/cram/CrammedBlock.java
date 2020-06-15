@@ -1,9 +1,12 @@
 package com.github.commoble.cram;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
+import com.github.commoble.cram.api.CramAccessorCapability;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -206,9 +209,17 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
+	public void onEntityCollision(BlockState stateIn, World worldIn, BlockPos pos, Entity entityIn)
 	{
-		super.onEntityCollision(state, worldIn, pos, entityIn);
+ 		worldIn.getTileEntity(pos).getCapability(CramAccessorCapability.INSTANCE).ifPresent(cram ->
+		{
+			// copy the blockstate list, as the original list may be edited during iteration
+			List<BlockState> stateListCopy = Lists.newArrayList(cram.getBlockStates());
+			for (BlockState state : stateListCopy)
+			{
+				CrammableBlocks.getCramEntryImpl(state.getBlock()).entityCollisionBehavior.onEntityCollision(state, worldIn, pos, entityIn, cram);
+			}
+		});
 	}
 
 	@Override
@@ -220,7 +231,11 @@ public class CrammedBlock extends Block
 	@Override
 	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
-		super.tick(state, worldIn, pos, rand);
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			((CrammedTileEntity)te).onBlockTick(worldIn, rand);
+		}
 	}
 	
 	// TODO implement the rest of these

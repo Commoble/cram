@@ -18,6 +18,15 @@ public class CrammableBlocks
 	
 	public static CramEntryImpl getCramEntryImpl(Block block)
 	{
-		return REGISTRY.getOrDefault(block, new CramEntryImpl(block));
+		if (REGISTRY.containsKey(block))
+		{
+			return REGISTRY.get(block);
+		}
+		else
+		{
+			CramEntryImpl entry = new CramEntryImpl(block);
+			REGISTRY.put(block, entry);
+			return entry;
+		}
 	}
 }

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.github.commoble.cram.api.CramAccessor;
+import com.github.commoble.cram.util.BlockStateTick;
 import com.google.common.collect.Sets;
 
 import net.minecraft.block.BlockState;
@@ -96,6 +97,15 @@ public class CramBlockAccessor implements CramAccessor
 		{
 			return false;
 		}
+	}
+
+	@Override
+	public void scheduleTick(BlockState state, int delay)
+	{
+		World world = this.te.getWorld();
+		this.te.pendingTicks.add(new BlockStateTick(state, world.getGameTime() + delay));
+		world.getPendingBlockTicks().scheduleTick(this.te.getPos(), this.te.getBlockState().getBlock(), delay);
+		this.te.markDirty();
 	}
 
 }

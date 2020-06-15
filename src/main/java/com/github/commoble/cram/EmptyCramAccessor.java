@@ -54,6 +54,12 @@ public class EmptyCramAccessor implements CramAccessor
 	{
 		return false;
 	}
+
+	@Override
+	public void scheduleTick(BlockState state, int delay)
+	{
+		
+	}
 	
 	public static class Storage implements IStorage<CramAccessor>
 	{

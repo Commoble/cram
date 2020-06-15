@@ -3,6 +3,7 @@ package com.github.commoble.cram.api;
 import com.github.commoble.cram.api.functions.EntityCollisionBehavior;
 import com.github.commoble.cram.api.functions.LightGetter;
 import com.github.commoble.cram.api.functions.NaiveVoxelProvider;
+import com.github.commoble.cram.api.functions.ScheduledTickBehavior;
 
 import net.minecraft.util.math.RayTraceContext.IVoxelProvider;
 
@@ -70,4 +71,12 @@ public interface CramEntry
 	 * @return this
 	 */
 	public CramEntry setEntityCollisionBehavior(final EntityCollisionBehavior behavior);
+	
+	/**
+	 * Sets the function that determines what happens when a tick scheduled through the cram access
+	 * occurs for a component blockstate. This MUST be set manually if behavior is desired.
+	 * @param behavior
+	 * @return this
+	 */
+	public CramEntry setScheduledTickBehavior(final ScheduledTickBehavior behavior);
 }

@@ -3,14 +3,19 @@ package com.github.commoble.cram;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.github.commoble.cram.api.CramAccessorCapability;
 import com.github.commoble.cram.api.CramAccessor;
+import com.github.commoble.cram.api.CramAccessorCapability;
+import com.github.commoble.cram.util.BlockStateTick;
 import com.github.commoble.cram.util.NBTListHelper;
 import com.github.commoble.cram.util.WorldHelper;
 import com.google.common.collect.Sets;
@@ -29,6 +34,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
@@ -39,8 +45,12 @@ public class CrammedTileEntity extends TileEntity
 	protected static final CrammedTileEntity EMPTY_INSTANCE = new CrammedTileEntity();
 	
 	protected static final NBTListHelper<BlockState> SUBSTATE_SERIALIZER = new NBTListHelper<>("substates",
-		state -> NBTUtil.writeBlockState(state),
-		nbt -> NBTUtil.readBlockState(nbt));
+		NBTUtil::writeBlockState,
+		NBTUtil::readBlockState);
+	
+	protected static final NBTListHelper<BlockStateTick> TICK_SERIALIZER = new NBTListHelper<>("ticks",
+		BlockStateTick::toNBT,
+		BlockStateTick::fromNBT);
 	
 	public final CramBlockAccessor accessor;
 	public final LazyOptional<CramAccessor> accessorHolder;
@@ -51,6 +61,8 @@ public class CrammedTileEntity extends TileEntity
 	public VoxelShape cachedCollisionShape = VoxelShapes.empty();
 	public VoxelShape cachedRenderShape = VoxelShapes.empty();
 	public VoxelShape cachedRaytraceShape = VoxelShapes.empty();
+	
+	public PriorityQueue<BlockStateTick> pendingTicks = new PriorityQueue<>();
 	
 	public CrammedTileEntity()
 	{
@@ -173,6 +185,29 @@ public class CrammedTileEntity extends TileEntity
 		}
 	}
 	
+	public void onBlockTick(ServerWorld world, Random random)
+	{
+		long gameTime = this.world.getGameTime();
+		
+		for (boolean done = false; !done;)
+		{
+			// check the next scheduled tick in the queue
+			BlockStateTick tick = this.pendingTicks.peek();
+			if (tick != null && tick.readyTime <= gameTime)
+			{	// if the tick is ready to happen, remove it from the queue and tick it
+				this.pendingTicks.poll();
+				this.markDirty();
+				
+				CrammableBlocks.getCramEntryImpl(tick.state.getBlock()).scheduledTickBehavior.onScheduledTick(tick.state, world, this.pos, random, this.accessor);
+				
+			}
+			else
+			{
+				done = true;
+			}
+		}
+	}
+	
 	/**
 	 * Get the property that the containing CrammedBlock should have at this position,
 	 * given the properties of the sub-blockstates stored in this TE.
@@ -221,14 +256,45 @@ public class CrammedTileEntity extends TileEntity
 	public void read(CompoundNBT compound)
 	{
 		super.read(compound);
-		this.states = Sets.newHashSet(SUBSTATE_SERIALIZER.read(compound));
+		this.readServerData(compound);
+		this.readSyncedData(compound);
 		this.updateProperties();
+	}
+	
+	/** read data from NBT that only the server needs **/
+	public void readServerData(CompoundNBT compound)
+	{
+		PriorityQueue<BlockStateTick> queue = new PriorityQueue<>();
+		queue.addAll(TICK_SERIALIZER.read(compound));
+		this.pendingTicks = queue;
+	}
+	
+	/** read data from NBT that both client and server need **/
+	public void readSyncedData(CompoundNBT compound)
+	{
+		this.states = Sets.newHashSet(SUBSTATE_SERIALIZER.read(compound));
 	}
 
 	@Override
 	public CompoundNBT write(CompoundNBT compound)
 	{
 		super.write(compound);
+		this.writeServerData(compound);
+		this.writeSyncedData(compound);
+		return compound;
+	}
+	
+	public CompoundNBT writeServerData(CompoundNBT compound)
+	{
+		List<BlockStateTick> list = this.pendingTicks.stream()
+			.sorted()
+			.collect(Collectors.toList());
+		TICK_SERIALIZER.write(list, compound);
+		return compound;
+	}
+	
+	public CompoundNBT writeSyncedData(CompoundNBT compound)
+	{
 		SUBSTATE_SERIALIZER.write(this.states, compound);
 		return compound;
 	}
@@ -238,14 +304,15 @@ public class CrammedTileEntity extends TileEntity
 	public void onDataPacket(NetworkManager manager, SUpdateTileEntityPacket packet)
 	{
 		super.onDataPacket(manager, packet);
-		this.read(packet.getNbtCompound());
+		this.readSyncedData(packet.getNbtCompound());
+		this.updateProperties();
 	}
 
 	/** Called to prepare the NBT for the packet sent from the server when the world is notified of a block update at this position **/
 	@Override
 	public SUpdateTileEntityPacket getUpdatePacket()
 	{
-		CompoundNBT nbt = this.write(new CompoundNBT());
+		CompoundNBT nbt = this.writeSyncedData(new CompoundNBT());
 		return new SUpdateTileEntityPacket(this.pos, 0, nbt);
 	}
 
@@ -254,7 +321,7 @@ public class CrammedTileEntity extends TileEntity
 	public CompoundNBT getUpdateTag()
 	{
 		CompoundNBT tag = super.getUpdateTag();
-		this.write(tag);
+		this.writeSyncedData(tag);
 		return tag;
 	}
 	

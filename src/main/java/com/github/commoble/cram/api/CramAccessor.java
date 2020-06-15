@@ -59,5 +59,10 @@ public interface CramAccessor
 	 */
 	public boolean removeState(BlockState oldState, boolean simulate);
 	
-	
+	/**
+	 * Schedules a blockstate inside the cram block to be ticked.
+	 * @param state The state to tick
+	 * @param delay How long to wait before ticking it
+	 */
+	public void scheduleTick(BlockState state, int delay);
 }
