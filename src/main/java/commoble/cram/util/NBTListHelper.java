@@ -1,4 +1,4 @@
-package com.github.commoble.cram.util;
+package commoble.cram.util;
 
 import java.util.ArrayList;
 import java.util.List;

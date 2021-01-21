@@ -1,4 +1,4 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import net.minecraft.item.Item;
 import net.minecraftforge.registries.DeferredRegister;

@@ -1,4 +1,4 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemUseContext;

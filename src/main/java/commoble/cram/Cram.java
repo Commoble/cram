@@ -1,11 +1,10 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.github.commoble.cram.api.CramAccessor;
-import com.github.commoble.cram.client.ClientEvents;
-
+import commoble.cram.api.CramAccessor;
+import commoble.cram.client.ClientEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;

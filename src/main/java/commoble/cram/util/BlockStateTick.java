@@ -1,4 +1,4 @@
-package com.github.commoble.cram.util;
+package commoble.cram.util;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;

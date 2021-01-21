@@ -1,4 +1,4 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 public class Names
 {

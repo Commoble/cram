@@ -1,11 +1,10 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
-import com.github.commoble.cram.api.CramEntry;
-import com.github.commoble.cram.api.functions.EntityCollisionBehavior;
-import com.github.commoble.cram.api.functions.LightGetter;
-import com.github.commoble.cram.api.functions.NaiveVoxelProvider;
-import com.github.commoble.cram.api.functions.ScheduledTickBehavior;
-
+import commoble.cram.api.CramEntry;
+import commoble.cram.api.functions.EntityCollisionBehavior;
+import commoble.cram.api.functions.LightGetter;
+import commoble.cram.api.functions.NaiveVoxelProvider;
+import commoble.cram.api.functions.ScheduledTickBehavior;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.RayTraceContext.IVoxelProvider;

@@ -1,12 +1,11 @@
-package com.github.commoble.cram.util;
+package commoble.cram.util;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.github.commoble.cram.AirSimulator;
-import com.github.commoble.cram.CramTags;
-
+import commoble.cram.AirSimulator;
+import commoble.cram.CramTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BlockItemUseContext;

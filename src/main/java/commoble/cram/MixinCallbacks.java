@@ -1,9 +1,8 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.github.commoble.cram.util.WorldHelper;
-
+import commoble.cram.util.WorldHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;

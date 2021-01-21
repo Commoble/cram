@@ -1,14 +1,13 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.objectweb.asm.Type;
 
-import com.github.commoble.cram.api.AutoCramPlugin;
-import com.github.commoble.cram.api.CramPlugin;
-import com.github.commoble.cram.api.functions.CramRegistrator;
-
+import commoble.cram.api.AutoCramPlugin;
+import commoble.cram.api.CramPlugin;
+import commoble.cram.api.functions.CramRegistrator;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData.AnnotationData;
 

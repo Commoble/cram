@@ -1,9 +1,8 @@
-package com.github.commoble.cram.vanilla;
+package commoble.cram.vanilla;
 
 import java.util.Random;
 
-import com.github.commoble.cram.api.CramAccessor;
-
+import commoble.cram.api.CramAccessor;
 import net.minecraft.block.AbstractPressurePlateBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

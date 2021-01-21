@@ -1,4 +1,4 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.fml.RegistryObject;

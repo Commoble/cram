@@ -1,12 +1,12 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.Collection;
 import java.util.Set;
 
-import com.github.commoble.cram.api.CramAccessor;
-import com.github.commoble.cram.util.BlockStateTick;
 import com.google.common.collect.Sets;
 
+import commoble.cram.api.CramAccessor;
+import commoble.cram.util.BlockStateTick;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.IBooleanFunction;

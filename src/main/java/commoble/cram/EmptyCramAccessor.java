@@ -1,10 +1,10 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.Collection;
 
-import com.github.commoble.cram.api.CramAccessor;
 import com.google.common.collect.ImmutableSet;
 
+import commoble.cram.api.CramAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
