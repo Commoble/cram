@@ -16,9 +16,9 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = "${mc-version}-${mod_version}"
-group = "com.github.commoble.${modid}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "${modid}"
+version = "${mod_version}"
+group = "commoble.${modid}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "${modid}-${mc_version}"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
@@ -29,7 +29,7 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
+            arg "-mixin.config=cram.mixins.json"
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -41,7 +41,7 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
+            arg "-mixin.config=cram.mixins.json"
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -54,6 +54,7 @@ minecraft {
         data {
             workingDirectory project.file('run')
             property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=cram.mixins.json"
 
             args '--mod', 'modid', '--all', '--output', file('src/generated/resources/')
 
@@ -88,11 +89,9 @@ dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
     
 	// compile against the JEI API but do not include it at runtime
-	compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
+	//compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
 	// at runtime, use the full JEI jar
-	runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
-	
-    compile 'org.spongepowered:mixin:0.8'
+	//runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
 
 }
 

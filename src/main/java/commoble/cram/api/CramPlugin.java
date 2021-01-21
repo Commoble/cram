@@ -1,6 +1,6 @@
-package com.github.commoble.cram.api;
+package commoble.cram.api;
 
-import com.github.commoble.cram.api.functions.CramRegistrator;
+import commoble.cram.api.functions.CramRegistrator;
 
 public interface CramPlugin
 {

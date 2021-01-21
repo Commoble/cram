@@ -1,4 +1,4 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.github.commoble.cram.api.CramAccessor;
-import com.github.commoble.cram.api.CramAccessorCapability;
-import com.github.commoble.cram.util.BlockStateTick;
-import com.github.commoble.cram.util.NBTListHelper;
-import com.github.commoble.cram.util.WorldHelper;
 import com.google.common.collect.Sets;
 
+import commoble.cram.api.CramAccessor;
+import commoble.cram.api.CramAccessorCapability;
+import commoble.cram.util.BlockStateTick;
+import commoble.cram.util.NBTListHelper;
+import commoble.cram.util.WorldHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -240,7 +240,7 @@ public class CrammedTileEntity extends TileEntity
 		if (this.world != null)
 		{
 			BlockState oldState = this.getBlockState();
-			if (oldState.has(CrammedBlock.LIGHT))
+			if (oldState.hasProperty(CrammedBlock.LIGHT))
 			{
 				int newLight = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).lightGetter.getLight(state, this.world, this.pos), 0, Math::max);
 				int oldLight = oldState.get(CrammedBlock.LIGHT);
@@ -253,9 +253,9 @@ public class CrammedTileEntity extends TileEntity
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState state, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(state, compound);
 		this.readServerData(compound);
 		this.readSyncedData(compound);
 		this.updateProperties();

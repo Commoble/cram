@@ -1,7 +1,6 @@
-package com.github.commoble.cram.api.functions;
+package commoble.cram.api.functions;
 
-import com.github.commoble.cram.api.CramAccessor;
-
+import commoble.cram.api.CramAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;

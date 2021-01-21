@@ -70,7 +70,7 @@ public class PressurePlateBehaviors
 			
 			if (isPowered)
 			{
-				cram.scheduleTick(newState, block.tickRate(world));
+				cram.scheduleTick(newState, PressurePlateHelper.getPoweredDuration(block));
 			}
 		}
 	}

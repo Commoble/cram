@@ -1,8 +1,8 @@
-package com.github.commoble.cram.client;
+package commoble.cram.client;
 
-import com.github.commoble.cram.CrammedTileEntity;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
+import commoble.cram.CrammedTileEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelShapes;

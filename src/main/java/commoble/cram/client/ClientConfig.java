@@ -1,8 +1,7 @@
-package com.github.commoble.cram.client;
+package commoble.cram.client;
 
-import com.github.commoble.cram.util.ConfigHelper;
-import com.github.commoble.cram.util.ConfigHelper.ConfigValueListener;
-
+import commoble.cram.util.ConfigHelper;
+import commoble.cram.util.ConfigHelper.ConfigValueListener;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 

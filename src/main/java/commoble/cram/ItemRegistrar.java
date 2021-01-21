@@ -6,7 +6,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class ItemRegistrar
 {
-	public static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(ForgeRegistries.ITEMS, Cram.MODID);
+	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Cram.MODID);
 
 	
 }

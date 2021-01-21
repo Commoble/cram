@@ -1,17 +1,24 @@
 package commoble.cram;
 
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.fluid.IFluidState;
+import net.minecraft.entity.Entity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeManager;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.dimension.Dimension;
 import net.minecraft.world.gen.Heightmap.Type;
 import net.minecraft.world.lighting.WorldLightManager;
 
@@ -43,12 +50,6 @@ public class AirSimulator implements IWorldReader
 	{
 		BlockState state = this.baseWorld.getBlockState(pos);
 		return state.getBlock() == BlockRegistrar.CRAMMED_BLOCK.get() ? Blocks.AIR.getDefaultState() : state;
-	}
-
-	@Override
-	public IFluidState getFluidState(BlockPos pos)
-	{
-		return this.baseWorld.getFluidState(pos);
 	}
 
 	@Override
@@ -101,15 +102,36 @@ public class AirSimulator implements IWorldReader
 	}
 
 	@Override
+	@Deprecated
 	public int getSeaLevel()
 	{
 		return this.baseWorld.getSeaLevel();
 	}
 
+	// get shading?
 	@Override
-	public Dimension getDimension()
+	public float func_230487_a_(Direction dir, boolean flag)
 	{
-		return this.baseWorld.getDimension();
+		return this.baseWorld.func_230487_a_(dir, flag);
+	}
+
+	@Override
+	public FluidState getFluidState(BlockPos pos)
+	{
+		return this.baseWorld.getFluidState(pos);
+	}
+
+	// get collisions for entity
+	@Override
+	public Stream<VoxelShape> func_230318_c_(Entity entity, AxisAlignedBB aabb, Predicate<Entity> predicate)
+	{
+		return this.baseWorld.func_230318_c_(entity, aabb, predicate);
+	}
+
+	@Override
+	public DimensionType getDimensionType()
+	{
+		return this.baseWorld.getDimensionType();
 	}
 
 }

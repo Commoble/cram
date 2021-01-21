@@ -1,7 +1,6 @@
-package com.github.commoble.cram.api.functions;
+package commoble.cram.api.functions;
 
-import com.github.commoble.cram.api.CramEntry;
-
+import commoble.cram.api.CramEntry;
 import net.minecraft.block.Block;
 
 public interface CramRegistrator

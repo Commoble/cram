@@ -1,4 +1,4 @@
-package com.github.commoble.cram.client;
+package commoble.cram.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -13,8 +13,8 @@ import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.ILightReader;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
 
 /**
@@ -40,7 +40,8 @@ public class BlockPreviewRenderer extends BlockModelRenderer
 	}
 
 	// invoked from the DrawHighlightEvent.HighlightBlock event
-	public static void renderBlockPreview(BlockPos pos, BlockState state, World world, Vec3d currentRenderPos, MatrixStack matrix, IRenderTypeBuffer renderTypeBuffer)
+	@SuppressWarnings("deprecation")
+	public static void renderBlockPreview(BlockPos pos, BlockState state, World world, Vector3d currentRenderPos, MatrixStack matrix, IRenderTypeBuffer renderTypeBuffer)
 	{
 		matrix.push();
 	
@@ -60,7 +61,7 @@ public class BlockPreviewRenderer extends BlockModelRenderer
 			state,
 			pos,
 			matrix,
-			renderTypeBuffer.getBuffer(RenderTypeLookup.getRenderType(state)),
+			renderTypeBuffer.getBuffer(RenderTypeLookup.getChunkRenderType(state)),
 			false,
 			world.rand,
 			state.getPositionRandom(pos),
@@ -72,7 +73,7 @@ public class BlockPreviewRenderer extends BlockModelRenderer
 
 	/** As in the superclass's method, except we tint the RGB values over time **/
 	@Override
-	public void renderQuadSmooth(ILightReader world, BlockState state, BlockPos pos, IVertexBuilder buffer, MatrixStack.Entry matrixEntry, BakedQuad quadIn,
+	public void renderQuadSmooth(IBlockDisplayReader world, BlockState state, BlockPos pos, IVertexBuilder buffer, MatrixStack.Entry matrixEntry, BakedQuad quadIn,
 		float tintA, float tintB, float tintC, float tintD, int brightness0, int brightness1, int brightness2, int brightness3, int combinedOverlayIn)
 	{
 		long milliTime = Util.milliTime();
@@ -90,7 +91,7 @@ public class BlockPreviewRenderer extends BlockModelRenderer
 			b = (i & 255) / 255.0F;
 		}
 		// FORGE: Apply diffuse lighting at render-time instead of baking it in
-		if (quadIn.shouldApplyDiffuseLighting())
+		if (quadIn.applyDiffuseLighting())
 		{
 			// TODO this should be handled by the forge lighting pipeline
 			float forgeLighting = net.minecraftforge.client.model.pipeline.LightUtil.diffuseLight(quadIn.getFace());

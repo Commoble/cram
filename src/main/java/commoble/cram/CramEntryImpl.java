@@ -5,6 +5,7 @@ import commoble.cram.api.functions.EntityCollisionBehavior;
 import commoble.cram.api.functions.LightGetter;
 import commoble.cram.api.functions.NaiveVoxelProvider;
 import commoble.cram.api.functions.ScheduledTickBehavior;
+import net.minecraft.block.AbstractBlock.AbstractBlockState;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.RayTraceContext.IVoxelProvider;
@@ -15,10 +16,12 @@ public class CramEntryImpl implements CramEntry
 	
 	// passive properties -- generally safe to defer to the block
 	public LightGetter lightGetter = BlockState::getLightValue;
-	public IVoxelProvider shapeGetter = BlockState::getShape;
-	public IVoxelProvider collisionShapeGetter = BlockState::getCollisionShape;
-	public NaiveVoxelProvider renderShapeGetter = BlockState::getRenderShape;
-	public NaiveVoxelProvider raytraceShapeGetter = BlockState::getRaytraceShape;
+	public IVoxelProvider shapeGetter = AbstractBlockState::getShape;
+	public IVoxelProvider collisionShapeGetter = AbstractBlockState::getCollisionShape;
+	public IVoxelProvider cameraShapeGetter = AbstractBlockState::getRaytraceShape;
+	public NaiveVoxelProvider raytraceShapeGetter = AbstractBlockState::getRayTraceShape;
+	public NaiveVoxelProvider renderShapeGetter = AbstractBlockState::getRenderShapeTrue;
+	public NaiveVoxelProvider attachmentShapeGetter = AbstractBlockState::getRenderShape; // mcp misname
 	
 	// active behaviors -- must be explicitly defined
 	public EntityCollisionBehavior entityCollisionBehavior = EntityCollisionBehavior.NOPE;

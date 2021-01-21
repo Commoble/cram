@@ -3,23 +3,23 @@ package commoble.cram;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
 
 public class CramTags
 {
 	/** BlockItems that can be crammed into existing crammable blocks **/
-	public static final ItemTags.Wrapper ALLOWED_ITEMS = new ItemTags.Wrapper(new ResourceLocation("cram:allowed"));
+	public static final ITag<Item> ALLOWED_ITEMS = ItemTags.makeWrapperTag("cram:allowed");
 	/** Items that cannot be crammed into existing crammable blocks. Overrides allowed items. **/
-	public static final ItemTags.Wrapper DENIED_ITEMS = new ItemTags.Wrapper(new ResourceLocation("cram:denied"));
+	public static final ITag<Item> DENIED_ITEMS = ItemTags.makeWrapperTag("cram:denied");
 	
 	/** Blocks that can have items crammed into them **/
-	public static final BlockTags.Wrapper ALLOWED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:allowed"));
+	public static final ITag<Block> ALLOWED_BLOCKS = BlockTags.makeWrapperTag("cram:allowed");
 	/** Blocks that cannot have items crammed into them. Overrides allowed blocks. **/
-	public static final BlockTags.Wrapper DENIED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:denied"));
+	public static final ITag<Block> DENIED_BLOCKS = BlockTags.makeWrapperTag("cram:denied");
 	
 	/** Blocks that are made for holding crammed blocks in. Cannot be crammed into other blocks themselves.**/
-	public static final BlockTags.Wrapper CRAMMED_BLOCKS = new BlockTags.Wrapper(new ResourceLocation("cram:crammed_blocks"));
+	public static final ITag<Block> CRAMMED_BLOCKS = BlockTags.makeWrapperTag("cram:crammed_blocks");
 
 	/**
 	 * Whether an item can be crammed into an existing block, forming a Crammed Block if it wasn't already.

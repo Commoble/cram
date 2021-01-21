@@ -1,9 +1,8 @@
-package com.github.commoble.cram.api.functions;
+package commoble.cram.api.functions;
 
 import java.util.Random;
 
-import com.github.commoble.cram.api.CramAccessor;
-
+import commoble.cram.api.CramAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;

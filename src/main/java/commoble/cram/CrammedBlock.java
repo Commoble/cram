@@ -1,23 +1,23 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-import com.github.commoble.cram.api.CramAccessorCapability;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import commoble.cram.api.CramAccessorCapability;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.MaterialColor;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.IFluidState;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.IntegerProperty;
@@ -26,12 +26,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Mirror;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
@@ -189,7 +191,7 @@ public class CrammedBlock extends Block
 	{
 		if (target instanceof BlockRayTraceResult)
 		{
-			Vec3d hit = target.getHitVec();
+			Vector3d hit = target.getHitVec();
 			BlockPos pos = new BlockPos(hit);
 			Collection<BlockState> states = CrammedTileEntity.getBlockStates(world, pos);
 			for (BlockState subState : states)
@@ -247,21 +249,9 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest, IFluidState fluid)
-	{
-		return super.removedByPlayer(state, world, pos, player, willHarvest, fluid);
-	}
-
-	@Override
 	public boolean isAir(BlockState state, IBlockReader world, BlockPos pos)
 	{
 		return super.isAir(state, world, pos);
-	}
-
-	@Override
-	public float getExplosionResistance(BlockState state, IWorldReader world, BlockPos pos, Entity exploder, Explosion explosion)
-	{
-		return super.getExplosionResistance(state, world, pos, exploder, explosion);
 	}
 
 	@Override
@@ -307,36 +297,6 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockState state, Direction facing, BlockState state2, IWorld world, BlockPos pos1, BlockPos pos2, Hand hand)
-	{
-		return super.getStateForPlacement(state, facing, state2, world, pos1, pos2, hand);
-	}
-
-	@Override
-	public boolean canBeConnectedTo(BlockState state, IBlockReader world, BlockPos pos, Direction facing)
-	{
-		return super.canBeConnectedTo(state, world, pos, facing);
-	}
-
-	@Override
-	public MaterialColor getMaterialColor(BlockState state, IBlockReader worldIn, BlockPos pos)
-	{
-		return super.getMaterialColor(state, worldIn, pos);
-	}
-
-	@Override
-	public void updateNeighbors(BlockState stateIn, IWorld worldIn, BlockPos pos, int flags)
-	{
-		super.updateNeighbors(stateIn, worldIn, pos, flags);
-	}
-
-	@Override
-	public void updateDiagonalNeighbors(BlockState state, IWorld worldIn, BlockPos pos, int flags)
-	{
-		super.updateDiagonalNeighbors(state, worldIn, pos, flags);
-	}
-
-	@Override
 	public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos)
 	{
 		return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
@@ -346,12 +306,6 @@ public class CrammedBlock extends Block
 	public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type)
 	{
 		return super.allowsMovement(state, worldIn, pos, type);
-	}
-
-	@Override
-	public float getBlockHardness(BlockState blockState, IBlockReader worldIn, BlockPos pos)
-	{
-		return super.getBlockHardness(blockState, worldIn, pos);
 	}
 
 	@Override
@@ -388,12 +342,6 @@ public class CrammedBlock extends Block
 	public float getPlayerRelativeBlockHardness(BlockState state, PlayerEntity player, IBlockReader worldIn, BlockPos pos)
 	{
 		return super.getPlayerRelativeBlockHardness(state, player, worldIn, pos);
-	}
-
-	@Override
-	public void spawnAdditionalDrops(BlockState state, World worldIn, BlockPos pos, ItemStack stack)
-	{
-		super.spawnAdditionalDrops(state, worldIn, pos, stack);
 	}
 
 	@Override
@@ -469,12 +417,6 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public void onProjectileCollision(World worldIn, BlockState state, BlockRayTraceResult hit, Entity projectile)
-	{
-		super.onProjectileCollision(worldIn, state, hit, projectile);
-	}
-
-	@Override
 	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player)
 	{
 		super.onBlockHarvested(worldIn, pos, state, player);
@@ -493,15 +435,75 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public Vec3d getOffset(BlockState state, IBlockReader worldIn, BlockPos pos)
-	{
-		return super.getOffset(state, worldIn, pos);
-	}
-
-	@Override
 	public float getSlipperiness(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
 	{
 		return super.getSlipperiness(state, world, pos, entity);
+	}
+
+	@Override
+	public BlockState getStateForPlacement(BlockItemUseContext context)
+	{
+		return super.getStateForPlacement(context);
+	}
+
+	@Override
+	public void updateDiagonalNeighbors(BlockState state, IWorld worldIn, BlockPos pos, int flags, int recursionLeft)
+	{
+		super.updateDiagonalNeighbors(state, worldIn, pos, flags, recursionLeft);
+	}
+
+	@Override
+	public boolean isSideInvisible(BlockState state, BlockState adjacentBlockState, Direction side)
+	{
+		return super.isSideInvisible(state, adjacentBlockState, side);
+	}
+
+	@Override
+	public boolean isTransparent(BlockState state)
+	{
+		return super.isTransparent(state);
+	}
+
+	@Override
+	public boolean hasComparatorInputOverride(BlockState state)
+	{
+		return super.hasComparatorInputOverride(state);
+	}
+
+	@Override
+	public BlockState rotate(BlockState state, Rotation rot)
+	{
+		return super.rotate(state, rot);
+	}
+
+	@Override
+	public BlockState mirror(BlockState state, Mirror mirrorIn)
+	{
+		return super.mirror(state, mirrorIn);
+	}
+
+	@Override
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos)
+	{
+		return super.getCollisionShape(state, reader, pos);
+	}
+
+	@Override
+	public VoxelShape getRayTraceShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
+	{
+		return super.getRayTraceShape(state, reader, pos, context);
+	}
+
+	@Override
+	public void spawnAdditionalDrops(BlockState state, ServerWorld worldIn, BlockPos pos, ItemStack stack)
+	{
+		super.spawnAdditionalDrops(state, worldIn, pos, stack);
+	}
+
+	@Override
+	public void onProjectileCollision(World worldIn, BlockState state, BlockRayTraceResult hit, ProjectileEntity projectile)
+	{
+		super.onProjectileCollision(worldIn, state, hit, projectile);
 	}
 
 	

@@ -1,10 +1,9 @@
-package com.github.commoble.cram;
+package commoble.cram;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.commoble.cram.api.CramEntry;
-
+import commoble.cram.api.CramEntry;
 import net.minecraft.block.Block;
 
 public class CrammableBlocks

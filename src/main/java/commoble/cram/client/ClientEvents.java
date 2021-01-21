@@ -1,10 +1,9 @@
-package com.github.commoble.cram.client;
+package commoble.cram.client;
 
-import com.github.commoble.cram.CramItemUseContext;
-import com.github.commoble.cram.CramTags;
-import com.github.commoble.cram.TileEntityRegistrar;
-import com.github.commoble.cram.util.WorldHelper;
-
+import commoble.cram.CramItemUseContext;
+import commoble.cram.CramTags;
+import commoble.cram.TileEntityRegistrar;
+import commoble.cram.util.WorldHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;

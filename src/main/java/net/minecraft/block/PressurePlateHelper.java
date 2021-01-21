@@ -29,4 +29,9 @@ public class PressurePlateHelper
 	{
 		return block.setRedstoneStrength(oldState, newPower);
 	}
+	
+	public static int getPoweredDuration(AbstractPressurePlateBlock block)
+	{
+		return block.getPoweredDuration();
+	}
 }

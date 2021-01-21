@@ -1,4 +1,4 @@
-package com.github.commoble.cram.api.functions;
+package commoble.cram.api.functions;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;

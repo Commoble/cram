@@ -1,4 +1,4 @@
-package com.github.commoble.cram.api;
+package commoble.cram.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
