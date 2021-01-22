@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.github.commoble.cram.mixin",
+  "package": "commoble.cram.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "cram.refmap.json",
   "mixins": [
