@@ -21,6 +21,7 @@ build
 eclipse
 run
 logs
+maven
 .factorypath
 
 # Files from Forge MDK

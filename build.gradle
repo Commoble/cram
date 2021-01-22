@@ -22,6 +22,20 @@ archivesBaseName = "${modid}-${mc_version}"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
+sourceSets
+{
+	main
+	api
+	examplemod
+	test
+}
+
+configurations {
+	apiCompile.extendsFrom(compile)
+}
+
+
+
 minecraft {
     mappings channel: 'snapshot', version: "${mappings_version}"    
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -35,6 +49,7 @@ minecraft {
             mods {
                 modid {
                     source sourceSets.main
+					source sourceSets.api
                 }
             }
         }
@@ -47,6 +62,7 @@ minecraft {
             mods {
                 modid {
                     source sourceSets.main
+					source sourceSets.api
                 }
             }
         }
@@ -61,6 +77,7 @@ minecraft {
             mods {
                 modid {
                     source sourceSets.main
+					source sourceSets.api
                 }
             }
         }
@@ -68,35 +85,25 @@ minecraft {
 }
 
 repositories {
-  maven {
-    // location of the maven that hosts JEI files
-    name = "Progwml6 maven"
-    url = "https://dvs1.progwml6.com/files/maven/"
-  }
-  maven {
-    // location of a maven mirror for JEI files, as a fallback
-    name = "ModMaven"
-    url = "https://modmaven.k-4u.nl"
-  }
-
-    maven {url='https://dist.creeper.host/Sponge/maven'}
-
     jcenter()
     mavenCentral()
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
-    
-	// compile against the JEI API but do not include it at runtime
-	//compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
-	// at runtime, use the full JEI jar
-	//runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
-
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+	implementation sourceSets.api.output
+}
+test {
+	useJUnitPlatform()
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
+	from sourceSets.main.output.classesDirs
+	from sourceSets.api.output.classesDirs
+	from sourceSets.main.output.resourcesDir
     manifest {
         attributes([
             "Specification-Title": "${modid}",
@@ -111,17 +118,55 @@ jar {
     }
 }
 
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//	classifier = "javadoc"
+//	from javadoc.destinationDir
+//}
+
+task sourcesJar(type: Jar) {
+	classifier = "sources"
+	from sourceSets.main.allJava
+	from sourceSets.api.allJava
+}
+task apiJar(type: Jar) {
+	classifier = "api"
+	from sourceSets.api.output
+	from sourceSets.api.allJava
+}
+task debugJar(type: Jar) {
+	classifier = "debug"
+	from sourceSets.main.output
+	from sourceSets.api.output
+	from sourceSets.main.allJava
+	from sourceSets.api.allJava
+}
+
+artifacts {
+	//archives javadocJar
+	archives sourcesJar
+	archives apiJar
+	archives debugJar
+}
+
 jar.finalizedBy('reobfJar') 
 
+// run "gradlew build publish" to build jars and generate a maven repo for them
+// run "gradlew build" to build the jars without mavening them
 publishing {
     publications {
         mavenJava(MavenPublication) {
+			artifactId project.archivesBaseName
             artifact jar
+			artifact apiJar
+			artifact sourcesJar
+			//artifact javadocJar
+			artifact debugJar
         }
     }
     repositories {
         maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+			name="localMaven"
+            url "file:///${project.projectDir}/maven"
         }
     }
 }
