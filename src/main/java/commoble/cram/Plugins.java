@@ -1,5 +1,6 @@
 package commoble.cram;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -12,7 +13,18 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData.AnnotationData;
 
 public class Plugins
-{	
+{
+	public static final Comparator<AnnotationData> SORTER = (a,b) ->
+	{
+		Object aPriorityData = a.getAnnotationData().get("priority");
+		Object bPriorityData = b.getAnnotationData().get("priority");
+		int priorityA = aPriorityData instanceof Integer ? (int)aPriorityData : 0;
+		int priorityB = bPriorityData instanceof Integer ? (int)bPriorityData : 0;
+		if (priorityA != priorityB)
+			return priorityA - priorityB;
+		return a.getMemberName().compareTo(b.getMemberName());
+	};
+	
 	/**
 	 * Instantiate one instance of all classes that are
 	 * A) annotated with AutoCramPlugin, and
@@ -29,7 +41,8 @@ public class Plugins
 		// get the names of all classes annotated with the plugin annotation
 		ModList.get().getAllScanData().stream()
 			.flatMap(modData -> modData.getAnnotations().stream())
-			.filter(annotationData -> Objects.equals(annotationData.getAnnotationType(), cramPluginType)) 
+			.filter(annotationData -> Objects.equals(annotationData.getAnnotationType(), cramPluginType))
+			.sorted(SORTER)
 			.map(AnnotationData::getMemberName)
 			
 			// try to create instances of these classes
