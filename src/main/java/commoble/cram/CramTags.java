@@ -38,6 +38,6 @@ public class CramTags
 	 */
 	public static boolean isBlockCrammingPermittedByTags(Block block)
 	{
-		return ALLOWED_BLOCKS.contains(block) && !DENIED_BLOCKS.contains(block);
+		return CRAMMED_BLOCKS.contains(block) || (ALLOWED_BLOCKS.contains(block) && !DENIED_BLOCKS.contains(block));
 	}
 }
