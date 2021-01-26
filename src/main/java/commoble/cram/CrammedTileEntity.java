@@ -19,7 +19,6 @@ import commoble.cram.api.CramAccessor;
 import commoble.cram.api.CramAccessorCapability;
 import commoble.cram.util.BlockStateTick;
 import commoble.cram.util.NBTListHelper;
-import commoble.cram.util.WorldHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -57,10 +56,13 @@ public class CrammedTileEntity extends TileEntity
 
 	public Set<BlockState> states = new HashSet<>();
 	
-	public VoxelShape cachedShape = VoxelShapes.empty();
+	public VoxelShape cachedInteractionShape = VoxelShapes.empty();
 	public VoxelShape cachedCollisionShape = VoxelShapes.empty();
+	public VoxelShape cachedCameraShape = VoxelShapes.empty();
 	public VoxelShape cachedRenderShape = VoxelShapes.empty();
 	public VoxelShape cachedRaytraceShape = VoxelShapes.empty();
+	public VoxelShape cachedAttachmentShape = VoxelShapes.empty();
+	public VoxelShape cachedInsulationShape = VoxelShapes.empty();
 	
 	public PriorityQueue<BlockStateTick> pendingTicks = new PriorityQueue<>();
 	
@@ -112,9 +114,12 @@ public class CrammedTileEntity extends TileEntity
 	@Nonnull
 	public static Collection<BlockState> getBlockStates(IBlockReader world, BlockPos pos)
 	{
-		return WorldHelper.getTileCapability(world, pos, CramAccessorCapability.INSTANCE)
-			.map(CramAccessor::getBlockStates)
-			.orElse(EmptyCramAccessor.NO_STATES);
+		TileEntity te = world.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			return ((CrammedTileEntity)te).accessor.getBlockStates();
+		}
+		return EmptyCramAccessor.NO_STATES;
 	}
 
 	/**
@@ -143,7 +148,16 @@ public class CrammedTileEntity extends TileEntity
 			maybeTE = world.getTileEntity(pos);
 			if (maybeTE instanceof CrammedTileEntity)
 			{
-				((CrammedTileEntity)maybeTE).addBlockStatesAndUpdate(states);
+				CrammedTileEntity cramTE = (CrammedTileEntity)maybeTE;
+				// add any pending block ticks to the cram TE
+				if (!world.isRemote())
+				{
+					// we could scan the world's pending block ticks
+					// but the pending tick list is really chunky and can easily have tens of thousands of pending ticks
+					// for now we'll just force a single tick on the existing state
+					cramTE.accessor.scheduleTick(existingState, 1);
+				}
+				cramTE.addBlockStatesAndUpdate(states);
 			}
 		}
 	}
@@ -231,11 +245,14 @@ public class CrammedTileEntity extends TileEntity
 	{
 		ISelectionContext context = ISelectionContext.dummy(); // TODO make selection context possible?
 		VoxelShape emptyVoxel = VoxelShapes.empty();
-		this.cachedShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).shapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
+		this.cachedInteractionShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).interactionShapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
 		this.cachedCollisionShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).collisionShapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
+		this.cachedCameraShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).cameraShapeGetter.get(state, this.world, this.pos, context), emptyVoxel, VoxelShapes::or);
 		this.cachedRaytraceShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).raytraceShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
 		this.cachedRenderShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).renderShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
-
+		this.cachedAttachmentShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).attachmentShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
+		this.cachedInsulationShape = this.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).insulationShapeGetter.get(state, this.world, this.pos), emptyVoxel, VoxelShapes::or);
+		
 		// don't update light on read
 		if (this.world != null)
 		{

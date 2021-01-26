@@ -9,6 +9,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.Capability.IStorage;
 
@@ -35,6 +37,12 @@ public class EmptyCramAccessor implements CramAccessor
 	public boolean canStateBeAdded(BlockState state, BlockState... ignoreStates)
 	{
 		return false;
+	}
+
+	@Override
+	public VoxelShape getInsulatingShape()
+	{
+		return VoxelShapes.empty();
 	}
 
 	@Override

@@ -26,3 +26,6 @@ maven
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# local scripts
+publish.bat

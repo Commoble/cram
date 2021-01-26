@@ -7,7 +7,8 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import commoble.cram.api.CramAccessorCapability;
+import commoble.cram.api.CramAccessor;
+import commoble.cram.api.CramReader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
@@ -95,16 +96,25 @@ public class CrammedBlock extends Block
 		}
 	}
 
+	// interaction shape
 	@Override
 	public VoxelShape getShape(BlockState state, IBlockReader world, BlockPos pos, ISelectionContext context)
 	{
-		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedShape);
+		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedInteractionShape);
 	}
 
+	// collision shape
 	@Override
 	public VoxelShape getCollisionShape(BlockState state, IBlockReader world, BlockPos pos, ISelectionContext context)
 	{
 		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedCollisionShape);
+	}
+
+	// camera shape
+	@Override
+	public VoxelShape getRayTraceShape(BlockState state, IBlockReader world, BlockPos pos, ISelectionContext context)
+	{
+		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedCameraShape);
 	}
 
 	@Override
@@ -113,11 +123,21 @@ public class CrammedBlock extends Block
 		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedRenderShape);
 	}
 
+	// normal override shape
 	@Override
 	public VoxelShape getRaytraceShape(BlockState state, IBlockReader world, BlockPos pos)
 	{
 		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedRaytraceShape);
 	}
+
+	// attachment shape
+	@Override
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader world, BlockPos pos)
+	{
+		return CrammedTileEntity.getSubstateProperty(world, pos, te -> te.cachedAttachmentShape);
+	}
+	
+	
 
 	/**
 	 * Called periodically clientside on blocks near the player to show effects
@@ -213,21 +233,36 @@ public class CrammedBlock extends Block
 	@Override
 	public void onEntityCollision(BlockState stateIn, World worldIn, BlockPos pos, Entity entityIn)
 	{
- 		worldIn.getTileEntity(pos).getCapability(CramAccessorCapability.INSTANCE).ifPresent(cram ->
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
 		{
+			CramAccessor cram = ((CrammedTileEntity)te).accessor;
 			// copy the blockstate list, as the original list may be edited during iteration
 			List<BlockState> stateListCopy = Lists.newArrayList(cram.getBlockStates());
 			for (BlockState state : stateListCopy)
 			{
 				CrammableBlocks.getCramEntryImpl(state.getBlock()).entityCollisionBehavior.onEntityCollision(state, worldIn, pos, entityIn, cram);
 			}
-		});
+		}
 	}
-
+	
 	@Override
-	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
+	public void randomTick(BlockState stateIn, ServerWorld worldIn, BlockPos pos, Random random)
 	{
-		super.randomTick(state, worldIn, pos, random);
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			CramAccessor cram = ((CrammedTileEntity)te).accessor;
+			// copy the blockstate list, as the original list may be edited during iteration
+			List<BlockState> stateListCopy = Lists.newArrayList(cram.getBlockStates());
+			for (BlockState state : stateListCopy)
+			{
+				if (state.ticksRandomly())
+				{
+					CrammableBlocks.getCramEntryImpl(state.getBlock()).randomTickBehavior.onRandomTick(state, worldIn, pos, random, cram);				
+				}
+			}
+		}
 	}
 
 	@Override
@@ -239,6 +274,82 @@ public class CrammedBlock extends Block
 			((CrammedTileEntity)te).onBlockTick(worldIn, rand);
 		}
 	}
+
+	@Override
+	public boolean canProvidePower(BlockState state)
+	{
+		// we don't have world context so we have to return true here
+		// we can use IForgeBlock::canConnectRedstone to fine-tune this
+		// but we still need to override this since WorldEntitySpawner and RedstoneDiode check this directly
+		return true;
+	}
+
+	@Override
+	public boolean canConnectRedstone(BlockState stateIn, IBlockReader worldIn, BlockPos pos, Direction side)
+	{
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			CramAccessor cram = ((CrammedTileEntity)te).accessor;
+			for (BlockState state : cram.getBlockStates())
+			{
+				if (CrammableBlocks.getCramEntryImpl(state.getBlock()).redstoneConnectivityGetter.test(state, worldIn, pos, side, cram))
+				{
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	@Override
+	public int getWeakPower(BlockState blockState, IBlockReader worldIn, BlockPos pos, Direction side)
+	{
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			CrammedTileEntity cramTE = (CrammedTileEntity)te;
+			CramReader cram = cramTE.accessor;
+			return cramTE.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).weakPowerGetter.getValue(state, worldIn, pos, side, cram), 0, Math::max);
+		}
+		
+		return 0;
+	}
+
+	@Override
+	public int getStrongPower(BlockState blockState, IBlockReader worldIn, BlockPos pos, Direction side)
+	{
+		TileEntity te = worldIn.getTileEntity(pos);
+		if (te instanceof CrammedTileEntity)
+		{
+			CrammedTileEntity cramTE = (CrammedTileEntity)te;
+			CramReader cram = cramTE.accessor;
+			return cramTE.getCombinedProperty(state -> CrammableBlocks.getCramEntryImpl(state.getBlock()).strongPowerGetter.getValue(state, worldIn, pos, side, cram), 0, Math::max);
+		}
+		
+		return 0;
+	}
+	
+	// TODO these are important to implement
+
+	@Override
+	public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor)
+	{
+		super.onNeighborChange(state, world, pos, neighbor);
+	}
+
+	@Override
+	public boolean getWeakChanges(BlockState state, IWorldReader world, BlockPos pos)
+	{
+		return super.getWeakChanges(state, world, pos);
+	}
+
+	@Override
+	public boolean hasComparatorInputOverride(BlockState state)
+	{
+		return super.hasComparatorInputOverride(state);
+	}
 	
 	// TODO implement the rest of these
 
@@ -246,18 +357,6 @@ public class CrammedBlock extends Block
 	public boolean isLadder(BlockState state, IWorldReader world, BlockPos pos, LivingEntity entity)
 	{
 		return super.isLadder(state, world, pos, entity);
-	}
-
-	@Override
-	public boolean isAir(BlockState state, IBlockReader world, BlockPos pos)
-	{
-		return super.isAir(state, world, pos);
-	}
-
-	@Override
-	public boolean canConnectRedstone(BlockState state, IBlockReader world, BlockPos pos, Direction side)
-	{
-		return super.canConnectRedstone(state, world, pos, side);
 	}
 
 	@Override
@@ -270,24 +369,6 @@ public class CrammedBlock extends Block
 	public void onPlantGrow(BlockState state, IWorld world, BlockPos pos, BlockPos source)
 	{
 		super.onPlantGrow(state, world, pos, source);
-	}
-
-	@Override
-	public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor)
-	{
-		super.onNeighborChange(state, world, pos, neighbor);
-	}
-
-	@Override
-	public boolean shouldCheckWeakPower(BlockState state, IWorldReader world, BlockPos pos, Direction side)
-	{
-		return super.shouldCheckWeakPower(state, world, pos, side);
-	}
-
-	@Override
-	public boolean getWeakChanges(BlockState state, IWorldReader world, BlockPos pos)
-	{
-		return super.getWeakChanges(state, world, pos);
 	}
 
 	@Override
@@ -369,24 +450,6 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
-	{
-		return super.getWeakPower(blockState, blockAccess, pos, side);
-	}
-
-	@Override
-	public boolean canProvidePower(BlockState state)
-	{
-		return super.canProvidePower(state);
-	}
-
-	@Override
-	public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
-	{
-		return super.getStrongPower(blockState, blockAccess, pos, side);
-	}
-
-	@Override
 	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, TileEntity te, ItemStack stack)
 	{
 		super.harvestBlock(worldIn, player, pos, state, te, stack);
@@ -465,12 +528,6 @@ public class CrammedBlock extends Block
 	}
 
 	@Override
-	public boolean hasComparatorInputOverride(BlockState state)
-	{
-		return super.hasComparatorInputOverride(state);
-	}
-
-	@Override
 	public BlockState rotate(BlockState state, Rotation rot)
 	{
 		return super.rotate(state, rot);
@@ -480,18 +537,6 @@ public class CrammedBlock extends Block
 	public BlockState mirror(BlockState state, Mirror mirrorIn)
 	{
 		return super.mirror(state, mirrorIn);
-	}
-
-	@Override
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos)
-	{
-		return super.getCollisionShape(state, reader, pos);
-	}
-
-	@Override
-	public VoxelShape getRayTraceShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
-	{
-		return super.getRayTraceShape(state, reader, pos, context);
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import commoble.cram.util.BlockStateTick;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.IBooleanFunction;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.World;
 
@@ -39,6 +40,12 @@ public class CramBlockAccessor implements CramAccessor
 			&& this.te.states.stream()
 				.allMatch(stateInTe -> ignorableStates.contains(stateInTe) ||
 				VoxelShapes.combineAndSimplify(stateInTe.getShape(world, pos), state.getShape(world, pos), IBooleanFunction.AND).isEmpty());
+	}
+
+	@Override
+	public VoxelShape getInsulatingShape()
+	{
+		return this.te.cachedInsulationShape;
 	}
 
 	@Override

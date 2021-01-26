@@ -32,8 +32,8 @@ sourceSets
 
 configurations {
 	apiCompile.extendsFrom(compile)
+	debugCompile.extendsFrom(compile)
 }
-
 
 
 minecraft {
@@ -47,7 +47,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                modid {
+                cram {
                     source sourceSets.main
 					source sourceSets.api
                 }
@@ -60,7 +60,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                modid {
+                cram {
                     source sourceSets.main
 					source sourceSets.api
                 }
@@ -75,7 +75,7 @@ minecraft {
             args '--mod', 'modid', '--all', '--output', file('src/generated/resources/')
 
             mods {
-                modid {
+                cram {
                     source sourceSets.main
 					source sourceSets.api
                 }
@@ -133,12 +133,17 @@ task apiJar(type: Jar) {
 	from sourceSets.api.output
 	from sourceSets.api.allJava
 }
+
+// full production jar plus attached sources for debugging
 task debugJar(type: Jar) {
 	classifier = "debug"
 	from sourceSets.main.output
-	from sourceSets.api.output
 	from sourceSets.main.allJava
+	from sourceSets.api.output
 	from sourceSets.api.allJava
+	// we have to exclude this from the compileOnly dependency,
+	// or mixins from this mod don't apply when we run the depending mod, weirdly
+	exclude "META-INF/mods.toml"
 }
 
 artifacts {

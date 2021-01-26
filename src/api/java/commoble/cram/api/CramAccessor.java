@@ -1,32 +1,14 @@
 package commoble.cram.api;
 
-import java.util.Collection;
-
 import net.minecraft.block.BlockState;
 
 /**
- * This interface permits limited access to a crammed block.
+ * This interface permits limited read/write access to a crammed block.
  * you can get a reference to the capability provider via
 
  */
-public interface CramAccessor
+public interface CramAccessor extends CramReader
 {
-	
-	/**
-	 * @return The collection of blockstates that are crammed
-	 */
-	public Collection<BlockState> getBlockStates();
-
-	/**
-	 * Returns whether there is room for a given blockstate to be added without overlapping.
-	 * This method is potentially expensive, try not to call in tick or render methods.
-	 * 
-	 * @param state The state to check for whether sufficient room exists to add
-	 * @param ignoreStates Optional states that can be ignored when checking whether room for the other state exists
-	 * @return True if the new state is permitted to be added by tags, does not already exist in the block, and
-	 * does not overlap with any states in the crammed block not specified for ignoring by ignoreStates
-	 */
-	public boolean canStateBeAdded(BlockState state, BlockState... ignoreStates);
 	
 	/**
 	 * Attempt to add a blockstate to a crammed block.
