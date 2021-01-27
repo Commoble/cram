@@ -183,7 +183,45 @@ public class CrammedBlock extends Block
     	
     	// if we failed to remove the substate, just use the regular behaviour
         return super.removedByPlayer(state, world, pos, player, willHarvest, fluid);
-    }
+	}
+
+    // normally, this is used in a functional manner, only returning a transformed state given a new world context
+    // there are some vanilla places that use this to have side effects though, like setting a beehive on fire affecting the beehive's TE
+	// so it's probably mostly safe to set our own TE data here
+    @SuppressWarnings("deprecation")
+	@Override
+	public BlockState updatePostPlacement(BlockState thisState, Direction directionToNeighbor, BlockState neighborState, IWorld world, BlockPos thisPos, BlockPos neighborPos)
+	{
+    	if (world instanceof ServerWorld)
+    	{
+    		TileEntity te = world.getTileEntity(thisPos);
+    		if (te instanceof CrammedTileEntity)
+    		{
+    			ServerWorld serverWorld = (ServerWorld)world;
+    			CrammedTileEntity cramTE = (CrammedTileEntity)te;
+    			List<BlockState> originalStates = ImmutableList.copyOf(cramTE.states);
+    			for (BlockState oldState : originalStates)
+    			{
+    				// for each state, transform it using its own updatePostPlacement logic
+    				// if the state hasn't changed, do nothing
+    				// if the new state is different, remove the old state from the cram
+    				// if the new state is null, spawn the old state's drops
+    				// if the new state is non-null and can be placed back into the cram, do that
+    				// if the new state is non-null and can't be placed back into the cram, spawn the old state's drops
+    				BlockState newState = oldState.updatePostPlacement(directionToNeighbor, neighborState, world, thisPos, neighborPos);
+    				if (newState != oldState)
+    				{
+    					cramTE.removeBlockStatesAndUpdate(oldState);
+    					if (newState == null || newState.isAir() || !cramTE.accessor.addState(newState, false))
+    					{
+    						Block.spawnDrops(oldState, serverWorld, thisPos);
+    					}
+    				}
+    			}
+    		}
+    	}
+		return thisState;
+	}
 
 	@Override
 	public int getLightValue(BlockState state, IBlockReader world, BlockPos pos)
@@ -486,12 +524,6 @@ public class CrammedBlock extends Block
 	public SoundType getSoundType(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
 	{
 		return super.getSoundType(state, world, pos, entity);
-	}
-
-	@Override
-	public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos)
-	{
-		return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
 	}
 
 	@Override
