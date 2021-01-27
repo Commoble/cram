@@ -1,8 +1,11 @@
 package commoble.cram;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -17,9 +20,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.loot.LootContext;
+import net.minecraft.loot.LootParameters;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer.Builder;
@@ -32,6 +38,7 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.CramVoxelShapeHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
@@ -55,6 +62,8 @@ public class CrammedBlock extends Block
 		this.setDefaultState(this.stateContainer.getBaseState().with(LIGHT, 0));
 	}
 	
+	// cramblock-specific methods
+	
 	@Override
 	public void fillStateContainer(Builder<Block, BlockState> builder)
 	{
@@ -73,6 +82,108 @@ public class CrammedBlock extends Block
 	{
 		return TileEntityRegistrar.CRAMMED_BLOCK.get().create();
 	}
+	
+	@Override
+	@Deprecated
+	public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder)
+	{
+		TileEntity te = builder.get(LootParameters.BLOCK_ENTITY);
+		if (te instanceof CrammedTileEntity)
+		{
+			List<ItemStack> results = new ArrayList<>();
+			CrammedTileEntity cramTE = (CrammedTileEntity) te;
+			cramTE.states.forEach(subState -> results.addAll(subState.getDrops(builder)));
+			return results;
+		}
+
+		return super.getDrops(state, builder);
+	}
+	
+    /**
+     * Called when a player removes a block.  This is responsible for
+     * actually destroying the block, and the block is intact at time of call.
+     * This is called regardless of whether the player can harvest the block or
+     * not.
+     *
+     * Return true if the block is actually destroyed.
+     *
+     * Note: When used in multiplayer, this is called on both client and
+     * server sides!
+     *
+     * @param state The current state.
+     * @param world The current world
+     * @param player The player damaging the block, may be null
+     * @param pos Block position in world
+     * @param willHarvest True if Block.harvestBlock will be called after this, if the return in true.
+     *        Can be useful to delay the destruction of tile entities till after harvestBlock
+     * @param fluid The current fluid state at current position
+     * @return True if the block is actually destroyed.
+     */
+    @Override
+	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest, FluidState fluid)
+    {
+    	// raytrace against the substates, get the state the player is actually pointing at
+    	// we can reasonably assume that the existing raytracing is currently and successfully targeting at least one
+    	// of the interaction shapes belonging to a substate in the crammed block
+    	// (otherwise this method wouldn't have been called)
+    	TileEntity te = world.getTileEntity(pos);
+		@Nullable BlockState targetState = null;
+		
+		if (te instanceof CrammedTileEntity && player != null)
+		{
+			CrammedTileEntity cramTE = (CrammedTileEntity) te;
+			Vector3d startVec = player.getEyePosition(1F);
+			Vector3d lookOffset = player.getLook(1F);
+			double rayTraceDistance = 10F;
+			Vector3d endVec = startVec.add(lookOffset.x * rayTraceDistance, lookOffset.y * rayTraceDistance, lookOffset.z * rayTraceDistance);
+			BlockRayTraceResult rayTraceAgainstAll = cramTE.cachedInteractionShape.rayTrace(startVec, endVec, pos); 
+			if (rayTraceAgainstAll != null)
+			{
+				ISelectionContext selectionContext = ISelectionContext.forEntity(player);
+				// adjust hit vector slightly so it's just inside the shape
+				Vector3d hitVec = rayTraceAgainstAll.getHitVec().add(lookOffset.mul(0.001D, 0.001D, 0.001D));
+				for (BlockState subState : cramTE.states)
+				{
+					VoxelShape interactionShape = CrammableBlocks.getCramEntryImpl(subState.getBlock()).interactionShapeGetter.get(subState, world, pos, selectionContext);
+					if (CramVoxelShapeHelper.shapeContains(interactionShape, hitVec.getX() - pos.getX(), hitVec.getY() - pos.getY(), hitVec.getZ() - pos.getZ()))
+					{
+						targetState = subState;
+						break;
+					}
+				}
+				// remove target state outside of the iterator
+				if (targetState != null)
+				{
+					Block targetBlock = targetState.getBlock();
+					// TODO if we add support for TEs then we need to provide TE context here for spawning drops
+					// normally xp is dropped too, but we can ignore this since crammed blocks will have been placed by
+					// the player anyway
+					targetBlock.onPlayerDestroy(world, pos, targetState);
+					if (willHarvest)
+					{
+						targetBlock.harvestBlock(world, player, pos, targetState, null, player.getHeldItemMainhand().copy());
+					}
+					if (world.isRemote)
+					{
+						// on the server world, onBlockHarvested will play the break effects for each player except the player given
+						// and also anger piglins at that player, so we do want to give it the player
+						// on the client world, willHarvest is always false, so we need to manually play the effects for that player
+						world.playEvent(player, 2001, pos, Block.getStateId(targetState));
+					}
+					else
+					{
+						targetBlock.onBlockHarvested(world, pos, targetState, player);
+					}
+					cramTE.removeBlockStatesAndUpdate(targetState);
+//					world.playEvent(2001, pos, Block.getStateId(targetState));
+					return false;
+				}
+			}
+		}
+    	
+    	// if we failed to remove the substate, just use the regular behaviour
+        return super.removedByPlayer(state, world, pos, player, willHarvest, fluid);
+    }
 
 	@Override
 	public int getLightValue(BlockState state, IBlockReader world, BlockPos pos)
